@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option go_package = "github.com/omec-project/dbuf";
+
+package dbuf;
+
+service DbufService {
+  rpc GetCurrentState(GetCurrentStateRequest) returns (GetCurrentStateResponse);
+
+  rpc ReleasePackets(ReleasePacketsRequest) returns (ReleasePacketsResponse);
+
+  rpc Subscribe(SubscribeRequest) returns (stream Notification);
+}
+
+message GetCurrentStateRequest {}
+
+message GetCurrentStateResponse {
+  uint64 maximum_buffers = 1;
+  uint64 free_buffers = 2;
+  uint64 maximum_memory = 3;
+  uint64 free_memory = 4;
+}
+
+message ReleasePacketsRequest {
+  uint64 buffer_id = 1;
+}
+
+message ReleasePacketsResponse {}
+
+message SubscribeRequest {}
+
+message Notification {
+  message FirstBuffer {
+    uint32 new_buffer_id = 1;
+  }
+
+  oneof message_type {
+    FirstBuffer first_buffer_message = 1;
+  }
+}
