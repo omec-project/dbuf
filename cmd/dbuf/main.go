@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
 	flag.Parse()
 
 	dbuffer := dbuf.NewDbuf()

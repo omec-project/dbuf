@@ -6,9 +6,8 @@ package dbuf;
 
 service DbufService {
   rpc GetCurrentState(GetCurrentStateRequest) returns (GetCurrentStateResponse);
-
+  rpc GetQueueState(GetQueueStateRequest) returns (GetQueueStateResponse);
   rpc ReleasePackets(ReleasePacketsRequest) returns (ReleasePacketsResponse);
-
   rpc Subscribe(SubscribeRequest) returns (stream Notification);
 }
 
@@ -21,6 +20,25 @@ message GetCurrentStateResponse {
   uint64 free_memory = 4;
 }
 
+message GetQueueStateRequest {
+  uint64 queue_id = 1;
+}
+
+message GetQueueStateResponse {
+  enum QueuesState {
+    QUEUE_STATE_INVALID = 0;
+    QUEUE_STATE_EMPTY = 1;
+    QUEUE_STATE_BUFFERING = 2;
+    QUEUE_STATE_DRAINING = 3;
+    QUEUE_STATE_FULL = 4;
+  }
+  uint64 maximum_buffers = 1;
+  uint64 free_buffers = 2;
+  uint64 maximum_memory = 3;
+  uint64 free_memory = 4;
+  QueuesState state = 5;
+}
+
 message ReleasePacketsRequest {
   uint64 buffer_id = 1;
 }
@@ -30,11 +48,16 @@ message ReleasePacketsResponse {}
 message SubscribeRequest {}
 
 message Notification {
+  message Ready {}
   message FirstBuffer {
     uint32 new_buffer_id = 1;
   }
-
+  message DroppedPacket {
+    uint32 queue_id = 1;
+  }
   oneof message_type {
-    FirstBuffer first_buffer_message = 1;
+    Ready ready = 1;
+    FirstBuffer first_buffer = 2;
+    DroppedPacket dropped_packet = 3;
   }
 }

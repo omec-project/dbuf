@@ -33,6 +33,21 @@ func (d *dataPlaneListener) Start(listenUrls string) error {
 	//}
 	url := urls[0]
 
+	//ifs, err := net.Interfaces()
+	//if err != nil {
+	//	return err
+	//}
+	//for _, i := range ifs {
+	//	log.Printf("%+v", i)
+	//	addrs, err := i.Addrs()
+	//	if err != nil{
+	//		return err
+	//	}
+	//	for _, addr := range addrs {
+	//		log.Println("\t", addr)
+	//	}
+	//}
+
 	laddr, err := net.ResolveUDPAddr("udp", url)
 	if err != nil {
 		return err
@@ -48,9 +63,17 @@ func (d *dataPlaneListener) Start(listenUrls string) error {
 }
 
 func (d *dataPlaneListener) Stop() {
-	d.closeSignal <- struct{}{}
+	log.Println("DataplaneListener stopping")
+	select {
+	case d.closeSignal <- struct{}{}:
+	default:
+	}
+	log.Println("1")
 	close(d.closeSignal)
+	log.Println("2")
 	d.udpConn.Close()
+
+	log.Println("DataplaneListener stopped")
 }
 
 func (d *dataPlaneListener) Send(packet udpPacket) (err error) {
@@ -71,25 +94,18 @@ func (d *dataPlaneListener) SetOutputChannel(ch chan udpPacket) {
 
 func (d *dataPlaneListener) ReceiveFn() {
 	for true {
-		select {
-		case <-d.closeSignal:
-			log.Println("Stopped receive loop.")
-			return
-		default:
-		}
-		if err := d.udpConn.SetDeadline(time.Now().Add(time.Second * 1)); err != nil {
-			log.Fatalf("%v\n", err)
-		}
 		buf := make([]byte, 2048)
 		n, raddr, err := d.udpConn.ReadFromUDP(buf)
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			continue
-		}
-		if err != nil {
-			log.Fatalf("%v\n", err)
+		} else if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
+			log.Println("Listen conn closed")
+			break
+		} else if err != nil {
+			log.Fatalf("%v", err)
 		}
 		buf = buf[:n]
-		log.Printf("Recv %v bytes from %v\n", n, raddr)
+		log.Printf("Recv %v bytes from %v: %v", n, raddr, buf)
 		p := udpPacket{
 			payload: buf, remoteAddress: *raddr,
 		}

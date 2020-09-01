@@ -12,7 +12,7 @@ import (
 
 var (
 	externalDbufUrl = flag.String("external_dbuf_url", "localhost:10000", "URL for server to listen to for external calls from SDN controller, etc")
-	dataPlaneUrls   = flag.String("data_plane_urls", ":8080", "Comma-separated list of URLs for server to listen for data plane packets")
+	dataPlaneUrls   = flag.String("data_plane_urls", "localhost:2152", "Comma-separated list of URLs for server to listen for data plane packets")
 )
 
 type Dbuf struct {
@@ -33,7 +33,6 @@ func NewDbuf() *Dbuf {
 func (dbuf *Dbuf) Run() (err error) {
 	// Setup signal handler.
 	signal.Notify(dbuf.signals, syscall.SIGINT)
-	go dbuf.HandleSignals()
 
 	// Start dataplane listener.
 	if err = dbuf.dl.Start(*dataPlaneUrls); err != nil {
@@ -52,6 +51,10 @@ func (dbuf *Dbuf) Run() (err error) {
 	}
 	dbuf.grpcServer = grpc.NewServer()
 	RegisterDbufServiceServer(dbuf.grpcServer, newDbufService(dbuf.bq))
+
+	// Install signal handler
+	go dbuf.HandleSignals()
+
 	// Blocking
 	err = dbuf.grpcServer.Serve(lis)
 	if err != nil {

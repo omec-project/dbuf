@@ -24,6 +24,40 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type GetQueueStateResponse_QueuesState int32
+
+const (
+	GetQueueStateResponse_QUEUE_STATE_INVALID   GetQueueStateResponse_QueuesState = 0
+	GetQueueStateResponse_QUEUE_STATE_EMPTY     GetQueueStateResponse_QueuesState = 1
+	GetQueueStateResponse_QUEUE_STATE_BUFFERING GetQueueStateResponse_QueuesState = 2
+	GetQueueStateResponse_QUEUE_STATE_DRAINING  GetQueueStateResponse_QueuesState = 3
+	GetQueueStateResponse_QUEUE_STATE_FULL      GetQueueStateResponse_QueuesState = 4
+)
+
+var GetQueueStateResponse_QueuesState_name = map[int32]string{
+	0: "QUEUE_STATE_INVALID",
+	1: "QUEUE_STATE_EMPTY",
+	2: "QUEUE_STATE_BUFFERING",
+	3: "QUEUE_STATE_DRAINING",
+	4: "QUEUE_STATE_FULL",
+}
+
+var GetQueueStateResponse_QueuesState_value = map[string]int32{
+	"QUEUE_STATE_INVALID":   0,
+	"QUEUE_STATE_EMPTY":     1,
+	"QUEUE_STATE_BUFFERING": 2,
+	"QUEUE_STATE_DRAINING":  3,
+	"QUEUE_STATE_FULL":      4,
+}
+
+func (x GetQueueStateResponse_QueuesState) String() string {
+	return proto.EnumName(GetQueueStateResponse_QueuesState_name, int32(x))
+}
+
+func (GetQueueStateResponse_QueuesState) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_60b6dc1b0941c986, []int{3, 0}
+}
+
 type GetCurrentStateRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -118,6 +152,116 @@ func (m *GetCurrentStateResponse) GetFreeMemory() uint64 {
 	return 0
 }
 
+type GetQueueStateRequest struct {
+	QueueId              uint64   `protobuf:"varint,1,opt,name=queue_id,json=queueId,proto3" json:"queue_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetQueueStateRequest) Reset()         { *m = GetQueueStateRequest{} }
+func (m *GetQueueStateRequest) String() string { return proto.CompactTextString(m) }
+func (*GetQueueStateRequest) ProtoMessage()    {}
+func (*GetQueueStateRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_60b6dc1b0941c986, []int{2}
+}
+
+func (m *GetQueueStateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetQueueStateRequest.Unmarshal(m, b)
+}
+func (m *GetQueueStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetQueueStateRequest.Marshal(b, m, deterministic)
+}
+func (m *GetQueueStateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetQueueStateRequest.Merge(m, src)
+}
+func (m *GetQueueStateRequest) XXX_Size() int {
+	return xxx_messageInfo_GetQueueStateRequest.Size(m)
+}
+func (m *GetQueueStateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetQueueStateRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetQueueStateRequest proto.InternalMessageInfo
+
+func (m *GetQueueStateRequest) GetQueueId() uint64 {
+	if m != nil {
+		return m.QueueId
+	}
+	return 0
+}
+
+type GetQueueStateResponse struct {
+	MaximumBuffers       uint64                            `protobuf:"varint,1,opt,name=maximum_buffers,json=maximumBuffers,proto3" json:"maximum_buffers,omitempty"`
+	FreeBuffers          uint64                            `protobuf:"varint,2,opt,name=free_buffers,json=freeBuffers,proto3" json:"free_buffers,omitempty"`
+	MaximumMemory        uint64                            `protobuf:"varint,3,opt,name=maximum_memory,json=maximumMemory,proto3" json:"maximum_memory,omitempty"`
+	FreeMemory           uint64                            `protobuf:"varint,4,opt,name=free_memory,json=freeMemory,proto3" json:"free_memory,omitempty"`
+	State                GetQueueStateResponse_QueuesState `protobuf:"varint,5,opt,name=state,proto3,enum=dbuf.GetQueueStateResponse_QueuesState" json:"state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
+	XXX_unrecognized     []byte                            `json:"-"`
+	XXX_sizecache        int32                             `json:"-"`
+}
+
+func (m *GetQueueStateResponse) Reset()         { *m = GetQueueStateResponse{} }
+func (m *GetQueueStateResponse) String() string { return proto.CompactTextString(m) }
+func (*GetQueueStateResponse) ProtoMessage()    {}
+func (*GetQueueStateResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_60b6dc1b0941c986, []int{3}
+}
+
+func (m *GetQueueStateResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetQueueStateResponse.Unmarshal(m, b)
+}
+func (m *GetQueueStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetQueueStateResponse.Marshal(b, m, deterministic)
+}
+func (m *GetQueueStateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetQueueStateResponse.Merge(m, src)
+}
+func (m *GetQueueStateResponse) XXX_Size() int {
+	return xxx_messageInfo_GetQueueStateResponse.Size(m)
+}
+func (m *GetQueueStateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetQueueStateResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetQueueStateResponse proto.InternalMessageInfo
+
+func (m *GetQueueStateResponse) GetMaximumBuffers() uint64 {
+	if m != nil {
+		return m.MaximumBuffers
+	}
+	return 0
+}
+
+func (m *GetQueueStateResponse) GetFreeBuffers() uint64 {
+	if m != nil {
+		return m.FreeBuffers
+	}
+	return 0
+}
+
+func (m *GetQueueStateResponse) GetMaximumMemory() uint64 {
+	if m != nil {
+		return m.MaximumMemory
+	}
+	return 0
+}
+
+func (m *GetQueueStateResponse) GetFreeMemory() uint64 {
+	if m != nil {
+		return m.FreeMemory
+	}
+	return 0
+}
+
+func (m *GetQueueStateResponse) GetState() GetQueueStateResponse_QueuesState {
+	if m != nil {
+		return m.State
+	}
+	return GetQueueStateResponse_QUEUE_STATE_INVALID
+}
+
 type ReleasePacketsRequest struct {
 	BufferId             uint64   `protobuf:"varint,1,opt,name=buffer_id,json=bufferId,proto3" json:"buffer_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -129,7 +273,7 @@ func (m *ReleasePacketsRequest) Reset()         { *m = ReleasePacketsRequest{} }
 func (m *ReleasePacketsRequest) String() string { return proto.CompactTextString(m) }
 func (*ReleasePacketsRequest) ProtoMessage()    {}
 func (*ReleasePacketsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_60b6dc1b0941c986, []int{2}
+	return fileDescriptor_60b6dc1b0941c986, []int{4}
 }
 
 func (m *ReleasePacketsRequest) XXX_Unmarshal(b []byte) error {
@@ -167,7 +311,7 @@ func (m *ReleasePacketsResponse) Reset()         { *m = ReleasePacketsResponse{}
 func (m *ReleasePacketsResponse) String() string { return proto.CompactTextString(m) }
 func (*ReleasePacketsResponse) ProtoMessage()    {}
 func (*ReleasePacketsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_60b6dc1b0941c986, []int{3}
+	return fileDescriptor_60b6dc1b0941c986, []int{5}
 }
 
 func (m *ReleasePacketsResponse) XXX_Unmarshal(b []byte) error {
@@ -198,7 +342,7 @@ func (m *SubscribeRequest) Reset()         { *m = SubscribeRequest{} }
 func (m *SubscribeRequest) String() string { return proto.CompactTextString(m) }
 func (*SubscribeRequest) ProtoMessage()    {}
 func (*SubscribeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_60b6dc1b0941c986, []int{4}
+	return fileDescriptor_60b6dc1b0941c986, []int{6}
 }
 
 func (m *SubscribeRequest) XXX_Unmarshal(b []byte) error {
@@ -221,7 +365,9 @@ var xxx_messageInfo_SubscribeRequest proto.InternalMessageInfo
 
 type Notification struct {
 	// Types that are valid to be assigned to MessageType:
-	//	*Notification_FirstBufferMessage
+	//	*Notification_Ready_
+	//	*Notification_FirstBuffer_
+	//	*Notification_DroppedPacket_
 	MessageType          isNotification_MessageType `protobuf_oneof:"message_type"`
 	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
 	XXX_unrecognized     []byte                     `json:"-"`
@@ -232,7 +378,7 @@ func (m *Notification) Reset()         { *m = Notification{} }
 func (m *Notification) String() string { return proto.CompactTextString(m) }
 func (*Notification) ProtoMessage()    {}
 func (*Notification) Descriptor() ([]byte, []int) {
-	return fileDescriptor_60b6dc1b0941c986, []int{5}
+	return fileDescriptor_60b6dc1b0941c986, []int{7}
 }
 
 func (m *Notification) XXX_Unmarshal(b []byte) error {
@@ -257,11 +403,23 @@ type isNotification_MessageType interface {
 	isNotification_MessageType()
 }
 
-type Notification_FirstBufferMessage struct {
-	FirstBufferMessage *Notification_FirstBuffer `protobuf:"bytes,1,opt,name=first_buffer_message,json=firstBufferMessage,proto3,oneof"`
+type Notification_Ready_ struct {
+	Ready *Notification_Ready `protobuf:"bytes,1,opt,name=ready,proto3,oneof"`
 }
 
-func (*Notification_FirstBufferMessage) isNotification_MessageType() {}
+type Notification_FirstBuffer_ struct {
+	FirstBuffer *Notification_FirstBuffer `protobuf:"bytes,2,opt,name=first_buffer,json=firstBuffer,proto3,oneof"`
+}
+
+type Notification_DroppedPacket_ struct {
+	DroppedPacket *Notification_DroppedPacket `protobuf:"bytes,3,opt,name=dropped_packet,json=droppedPacket,proto3,oneof"`
+}
+
+func (*Notification_Ready_) isNotification_MessageType() {}
+
+func (*Notification_FirstBuffer_) isNotification_MessageType() {}
+
+func (*Notification_DroppedPacket_) isNotification_MessageType() {}
 
 func (m *Notification) GetMessageType() isNotification_MessageType {
 	if m != nil {
@@ -270,9 +428,23 @@ func (m *Notification) GetMessageType() isNotification_MessageType {
 	return nil
 }
 
-func (m *Notification) GetFirstBufferMessage() *Notification_FirstBuffer {
-	if x, ok := m.GetMessageType().(*Notification_FirstBufferMessage); ok {
-		return x.FirstBufferMessage
+func (m *Notification) GetReady() *Notification_Ready {
+	if x, ok := m.GetMessageType().(*Notification_Ready_); ok {
+		return x.Ready
+	}
+	return nil
+}
+
+func (m *Notification) GetFirstBuffer() *Notification_FirstBuffer {
+	if x, ok := m.GetMessageType().(*Notification_FirstBuffer_); ok {
+		return x.FirstBuffer
+	}
+	return nil
+}
+
+func (m *Notification) GetDroppedPacket() *Notification_DroppedPacket {
+	if x, ok := m.GetMessageType().(*Notification_DroppedPacket_); ok {
+		return x.DroppedPacket
 	}
 	return nil
 }
@@ -280,9 +452,42 @@ func (m *Notification) GetFirstBufferMessage() *Notification_FirstBuffer {
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*Notification) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*Notification_FirstBufferMessage)(nil),
+		(*Notification_Ready_)(nil),
+		(*Notification_FirstBuffer_)(nil),
+		(*Notification_DroppedPacket_)(nil),
 	}
 }
+
+type Notification_Ready struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Notification_Ready) Reset()         { *m = Notification_Ready{} }
+func (m *Notification_Ready) String() string { return proto.CompactTextString(m) }
+func (*Notification_Ready) ProtoMessage()    {}
+func (*Notification_Ready) Descriptor() ([]byte, []int) {
+	return fileDescriptor_60b6dc1b0941c986, []int{7, 0}
+}
+
+func (m *Notification_Ready) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Notification_Ready.Unmarshal(m, b)
+}
+func (m *Notification_Ready) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Notification_Ready.Marshal(b, m, deterministic)
+}
+func (m *Notification_Ready) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Notification_Ready.Merge(m, src)
+}
+func (m *Notification_Ready) XXX_Size() int {
+	return xxx_messageInfo_Notification_Ready.Size(m)
+}
+func (m *Notification_Ready) XXX_DiscardUnknown() {
+	xxx_messageInfo_Notification_Ready.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Notification_Ready proto.InternalMessageInfo
 
 type Notification_FirstBuffer struct {
 	NewBufferId          uint32   `protobuf:"varint,1,opt,name=new_buffer_id,json=newBufferId,proto3" json:"new_buffer_id,omitempty"`
@@ -295,7 +500,7 @@ func (m *Notification_FirstBuffer) Reset()         { *m = Notification_FirstBuff
 func (m *Notification_FirstBuffer) String() string { return proto.CompactTextString(m) }
 func (*Notification_FirstBuffer) ProtoMessage()    {}
 func (*Notification_FirstBuffer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_60b6dc1b0941c986, []int{5, 0}
+	return fileDescriptor_60b6dc1b0941c986, []int{7, 1}
 }
 
 func (m *Notification_FirstBuffer) XXX_Unmarshal(b []byte) error {
@@ -323,45 +528,103 @@ func (m *Notification_FirstBuffer) GetNewBufferId() uint32 {
 	return 0
 }
 
+type Notification_DroppedPacket struct {
+	QueueId              uint32   `protobuf:"varint,1,opt,name=queue_id,json=queueId,proto3" json:"queue_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Notification_DroppedPacket) Reset()         { *m = Notification_DroppedPacket{} }
+func (m *Notification_DroppedPacket) String() string { return proto.CompactTextString(m) }
+func (*Notification_DroppedPacket) ProtoMessage()    {}
+func (*Notification_DroppedPacket) Descriptor() ([]byte, []int) {
+	return fileDescriptor_60b6dc1b0941c986, []int{7, 2}
+}
+
+func (m *Notification_DroppedPacket) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Notification_DroppedPacket.Unmarshal(m, b)
+}
+func (m *Notification_DroppedPacket) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Notification_DroppedPacket.Marshal(b, m, deterministic)
+}
+func (m *Notification_DroppedPacket) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Notification_DroppedPacket.Merge(m, src)
+}
+func (m *Notification_DroppedPacket) XXX_Size() int {
+	return xxx_messageInfo_Notification_DroppedPacket.Size(m)
+}
+func (m *Notification_DroppedPacket) XXX_DiscardUnknown() {
+	xxx_messageInfo_Notification_DroppedPacket.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Notification_DroppedPacket proto.InternalMessageInfo
+
+func (m *Notification_DroppedPacket) GetQueueId() uint32 {
+	if m != nil {
+		return m.QueueId
+	}
+	return 0
+}
+
 func init() {
+	proto.RegisterEnum("dbuf.GetQueueStateResponse_QueuesState", GetQueueStateResponse_QueuesState_name, GetQueueStateResponse_QueuesState_value)
 	proto.RegisterType((*GetCurrentStateRequest)(nil), "dbuf.GetCurrentStateRequest")
 	proto.RegisterType((*GetCurrentStateResponse)(nil), "dbuf.GetCurrentStateResponse")
+	proto.RegisterType((*GetQueueStateRequest)(nil), "dbuf.GetQueueStateRequest")
+	proto.RegisterType((*GetQueueStateResponse)(nil), "dbuf.GetQueueStateResponse")
 	proto.RegisterType((*ReleasePacketsRequest)(nil), "dbuf.ReleasePacketsRequest")
 	proto.RegisterType((*ReleasePacketsResponse)(nil), "dbuf.ReleasePacketsResponse")
 	proto.RegisterType((*SubscribeRequest)(nil), "dbuf.SubscribeRequest")
 	proto.RegisterType((*Notification)(nil), "dbuf.Notification")
+	proto.RegisterType((*Notification_Ready)(nil), "dbuf.Notification.Ready")
 	proto.RegisterType((*Notification_FirstBuffer)(nil), "dbuf.Notification.FirstBuffer")
+	proto.RegisterType((*Notification_DroppedPacket)(nil), "dbuf.Notification.DroppedPacket")
 }
 
 func init() { proto.RegisterFile("dbuf.proto", fileDescriptor_60b6dc1b0941c986) }
 
 var fileDescriptor_60b6dc1b0941c986 = []byte{
-	// 401 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0xcd, 0x8e, 0xd3, 0x30,
-	0x14, 0x85, 0x09, 0x54, 0x88, 0xb9, 0x69, 0x3b, 0xc8, 0x82, 0xa1, 0xca, 0x94, 0x02, 0x91, 0x10,
-	0x6c, 0x48, 0xa1, 0xb0, 0x61, 0x1b, 0x10, 0x3f, 0x42, 0xad, 0x50, 0xba, 0x63, 0x13, 0x25, 0xe9,
-	0x75, 0x31, 0xe0, 0x38, 0xf8, 0x87, 0xd2, 0x07, 0x62, 0xc9, 0x63, 0xf1, 0x1e, 0x28, 0xb6, 0x5b,
-	0xfa, 0xc7, 0x2e, 0x39, 0xfe, 0x4e, 0xae, 0xcf, 0xb9, 0x01, 0x58, 0x94, 0x86, 0x26, 0x8d, 0x14,
-	0x5a, 0x90, 0x4e, 0xfb, 0x1c, 0x0f, 0xe0, 0xe2, 0x2d, 0xea, 0x57, 0x46, 0x4a, 0xac, 0xf5, 0x5c,
-	0x17, 0x1a, 0x33, 0xfc, 0x6e, 0x50, 0xe9, 0xf8, 0x77, 0x00, 0x77, 0x8e, 0x8e, 0x54, 0x23, 0x6a,
-	0x85, 0xe4, 0x11, 0x9c, 0xf3, 0xe2, 0x27, 0xe3, 0x86, 0xe7, 0xa5, 0xa1, 0x14, 0xa5, 0x1a, 0x04,
-	0xf7, 0x83, 0xc7, 0x9d, 0xac, 0xef, 0xe5, 0xd4, 0xa9, 0xe4, 0x01, 0x74, 0xa9, 0x44, 0xdc, 0x52,
-	0x57, 0x2d, 0x15, 0xb6, 0xda, 0x06, 0x79, 0x08, 0x1b, 0x53, 0xce, 0x91, 0x0b, 0xb9, 0x1e, 0x5c,
-	0xb3, 0x50, 0xcf, 0xab, 0x53, 0x2b, 0x92, 0x7b, 0x60, 0x5d, 0x1b, 0xa6, 0x63, 0x19, 0x68, 0x25,
-	0x07, 0xc4, 0x2f, 0xe0, 0x76, 0x86, 0xdf, 0xb0, 0x50, 0xf8, 0xb1, 0xa8, 0xbe, 0xa2, 0x56, 0x3e,
-	0x08, 0xb9, 0x84, 0x33, 0x37, 0x3e, 0x67, 0x0b, 0x7f, 0xcd, 0x1b, 0x4e, 0x78, 0xbf, 0x68, 0xf3,
-	0x1f, 0xba, 0x5c, 0xc6, 0x98, 0xc0, 0xcd, 0xb9, 0x29, 0x55, 0x25, 0x59, 0xb9, 0xed, 0xe4, 0x57,
-	0x00, 0xdd, 0x99, 0xd0, 0x8c, 0xb2, 0xaa, 0xd0, 0x4c, 0xd4, 0x24, 0x83, 0x5b, 0x94, 0x49, 0xa5,
-	0x7d, 0xc0, 0x9c, 0xa3, 0x52, 0xc5, 0x12, 0xed, 0x98, 0x70, 0x32, 0x4a, 0x6c, 0xdf, 0xbb, 0x8e,
-	0xe4, 0x4d, 0x8b, 0xbb, 0xec, 0xef, 0xae, 0x64, 0x84, 0xfe, 0x7b, 0x9d, 0x3a, 0x6f, 0xf4, 0x0c,
-	0xc2, 0x1d, 0x88, 0xc4, 0xd0, 0xab, 0x71, 0x95, 0xef, 0x47, 0xe8, 0x65, 0x61, 0x8d, 0xab, 0xd4,
-	0xa7, 0x48, 0xfb, 0xd0, 0xf5, 0x93, 0x73, 0xbd, 0x6e, 0x70, 0xf2, 0x27, 0x80, 0xf0, 0x75, 0x69,
-	0xe8, 0x1c, 0xe5, 0x0f, 0x56, 0x21, 0x99, 0xc1, 0xf9, 0xc1, 0x2a, 0xc9, 0xd0, 0xdd, 0xed, 0xf4,
-	0xf2, 0xa3, 0xbb, 0xff, 0x39, 0xf5, 0xfb, 0xff, 0x00, 0xfd, 0xfd, 0xd6, 0xc8, 0xa5, 0x33, 0x9c,
-	0xdc, 0x40, 0x34, 0x3c, 0x7d, 0xe8, 0x3f, 0xf6, 0x12, 0xce, 0xb6, 0x45, 0x93, 0x0b, 0x87, 0x1e,
-	0x36, 0x1f, 0x91, 0xe3, 0x2a, 0x9f, 0x06, 0xe9, 0xe8, 0xd3, 0x70, 0xc9, 0xf4, 0x67, 0x53, 0x26,
-	0x95, 0xe0, 0x63, 0xc1, 0xb1, 0x7a, 0xd2, 0x48, 0xf1, 0x05, 0x2b, 0x3d, 0x6e, 0xf1, 0xf2, 0xba,
-	0xfd, 0xd5, 0x9f, 0xff, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x7f, 0x38, 0xd7, 0x4b, 0xf8, 0x02, 0x00,
+	// 625 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x54, 0x4d, 0x53, 0xd3, 0x50,
+	0x14, 0x6d, 0x4a, 0x2b, 0x70, 0xd3, 0x94, 0xfa, 0xa4, 0x50, 0x02, 0x22, 0x66, 0xc6, 0x81, 0x71,
+	0xc6, 0x02, 0xd5, 0x8d, 0x0b, 0x17, 0x94, 0xb6, 0x34, 0x23, 0x74, 0x20, 0xa5, 0xce, 0xe8, 0x26,
+	0x93, 0x8f, 0x1b, 0x8c, 0x9a, 0x26, 0x24, 0x2f, 0x22, 0xff, 0xc0, 0x3f, 0xe3, 0xf8, 0x37, 0xfc,
+	0x43, 0xee, 0x9d, 0xbc, 0x97, 0x96, 0xb4, 0x44, 0xd7, 0xee, 0x9a, 0x73, 0xce, 0xbd, 0xbd, 0xef,
+	0x9e, 0xf3, 0x1e, 0x80, 0x6d, 0xc6, 0x4e, 0x33, 0x08, 0x7d, 0xea, 0x93, 0x52, 0xf2, 0x5b, 0x69,
+	0xc0, 0xda, 0x09, 0xd2, 0xe3, 0x38, 0x0c, 0x71, 0x4c, 0x87, 0xd4, 0xa0, 0xa8, 0xe1, 0x75, 0x8c,
+	0x11, 0x55, 0x7e, 0x08, 0xb0, 0x7e, 0x8f, 0x8a, 0x02, 0x7f, 0x1c, 0x21, 0xd9, 0x85, 0x15, 0xcf,
+	0xf8, 0xe6, 0x7a, 0xb1, 0xa7, 0x9b, 0xb1, 0xe3, 0x60, 0x18, 0x35, 0x84, 0x1d, 0x61, 0xaf, 0xa4,
+	0x55, 0x53, 0xb8, 0xcd, 0x51, 0xf2, 0x14, 0x2a, 0x4e, 0x88, 0x38, 0x55, 0x15, 0x99, 0x4a, 0x4c,
+	0xb0, 0x89, 0xe4, 0x19, 0x4c, 0x8a, 0x74, 0x0f, 0x3d, 0x3f, 0xbc, 0x6d, 0x2c, 0x30, 0x91, 0x94,
+	0xa2, 0x67, 0x0c, 0x24, 0x4f, 0x80, 0x55, 0x4d, 0x34, 0x25, 0xa6, 0x81, 0x04, 0xe2, 0x02, 0xe5,
+	0x10, 0x56, 0x4f, 0x90, 0x5e, 0xc4, 0x18, 0x63, 0xf6, 0x1c, 0x64, 0x03, 0x96, 0xae, 0x13, 0x50,
+	0x77, 0xed, 0x74, 0xc8, 0x45, 0xf6, 0xad, 0xda, 0xca, 0xef, 0x22, 0xd4, 0xe7, 0x6a, 0xfe, 0xdf,
+	0x03, 0x92, 0x37, 0x50, 0x8e, 0x92, 0x21, 0x1b, 0xe5, 0x1d, 0x61, 0xaf, 0xda, 0xda, 0x6d, 0x32,
+	0x33, 0x73, 0xe7, 0x6f, 0x32, 0x28, 0xe2, 0x18, 0xaf, 0x52, 0xbe, 0x0b, 0x20, 0x66, 0x60, 0xb2,
+	0x0e, 0x8f, 0x2e, 0x46, 0xdd, 0x51, 0x57, 0x1f, 0x5e, 0x1e, 0x5d, 0x76, 0x75, 0x75, 0xf0, 0xee,
+	0xe8, 0x54, 0xed, 0xd4, 0x0a, 0xa4, 0x0e, 0x0f, 0xb3, 0x44, 0xf7, 0xec, 0xfc, 0xf2, 0x7d, 0x4d,
+	0x20, 0x1b, 0x50, 0xcf, 0xc2, 0xed, 0x51, 0xaf, 0xd7, 0xd5, 0xd4, 0xc1, 0x49, 0xad, 0x48, 0x1a,
+	0xb0, 0x9a, 0xa5, 0x3a, 0xda, 0x91, 0x3a, 0x48, 0x98, 0x05, 0xb2, 0x0a, 0xb5, 0x2c, 0xd3, 0x1b,
+	0x9d, 0x9e, 0xd6, 0x4a, 0xca, 0x2b, 0xa8, 0x6b, 0xf8, 0x05, 0x8d, 0x08, 0xcf, 0x0d, 0xeb, 0x33,
+	0xd2, 0x68, 0xe2, 0xd5, 0x26, 0x2c, 0xf3, 0x45, 0xde, 0x99, 0xb5, 0xc4, 0x01, 0xd5, 0x4e, 0xa2,
+	0x3a, 0x5f, 0xc5, 0x4f, 0xab, 0x10, 0xa8, 0x0d, 0x63, 0x33, 0xb2, 0x42, 0xd7, 0x9c, 0xc6, 0xf7,
+	0x57, 0x11, 0x2a, 0x03, 0x9f, 0xba, 0x8e, 0x6b, 0x19, 0xd4, 0xf5, 0xc7, 0xe4, 0x00, 0xca, 0x21,
+	0x1a, 0xf6, 0x2d, 0xeb, 0x2b, 0xb6, 0x1a, 0x7c, 0x7d, 0x59, 0x49, 0x53, 0x4b, 0xf8, 0x7e, 0x41,
+	0xe3, 0x42, 0x72, 0x0c, 0x15, 0xc7, 0x0d, 0x23, 0x9a, 0x9a, 0xcb, 0xbc, 0x15, 0x5b, 0xdb, 0x39,
+	0x85, 0xbd, 0x44, 0xc6, 0xfd, 0xee, 0x17, 0x34, 0xd1, 0xb9, 0xfb, 0x24, 0x2a, 0x54, 0xed, 0xd0,
+	0x0f, 0x02, 0xb4, 0xf5, 0x80, 0x8d, 0xcd, 0xdc, 0x17, 0x5b, 0x3b, 0x39, 0x6d, 0x3a, 0x5c, 0xc8,
+	0x8f, 0xd7, 0x2f, 0x68, 0x92, 0x9d, 0x05, 0xe4, 0x45, 0x28, 0xb3, 0x09, 0xe5, 0x43, 0x10, 0x33,
+	0xff, 0x48, 0x14, 0x90, 0xc6, 0x78, 0xa3, 0xcf, 0x6e, 0x4e, 0xd2, 0xc4, 0x31, 0xde, 0xb4, 0xd3,
+	0xe5, 0xc9, 0xcf, 0x41, 0x9a, 0xe9, 0x7e, 0xef, 0x5a, 0x48, 0xd3, 0x6b, 0xd1, 0xae, 0x42, 0xc5,
+	0xc3, 0x28, 0x32, 0xae, 0x50, 0xa7, 0xb7, 0x01, 0xb6, 0x7e, 0x16, 0x41, 0xec, 0x98, 0xb1, 0x33,
+	0xc4, 0xf0, 0xab, 0x6b, 0x21, 0x19, 0xc0, 0xca, 0xdc, 0xc3, 0x40, 0xb6, 0xa6, 0x61, 0xcc, 0x79,
+	0x4a, 0xe4, 0xc7, 0x7f, 0x61, 0xd3, 0xcb, 0xd6, 0x07, 0x69, 0x26, 0xc5, 0x44, 0xce, 0x8d, 0x36,
+	0xef, 0xb5, 0xf9, 0x8f, 0xd8, 0x93, 0xb7, 0x50, 0x9d, 0x8d, 0x08, 0x49, 0xe5, 0xb9, 0x71, 0x93,
+	0xb7, 0xf2, 0xc9, 0xb4, 0xd9, 0x6b, 0x58, 0x9e, 0xa6, 0x8a, 0xac, 0x71, 0xe9, 0x7c, 0xcc, 0x64,
+	0x72, 0xdf, 0xc6, 0x03, 0xa1, 0xbd, 0xfd, 0x61, 0xeb, 0xca, 0xa5, 0x1f, 0x63, 0xb3, 0x69, 0xf9,
+	0xde, 0xbe, 0xef, 0xa1, 0xf5, 0x22, 0x08, 0xfd, 0x4f, 0x68, 0xd1, 0xfd, 0x44, 0x6e, 0x3e, 0x60,
+	0x4f, 0xf0, 0xcb, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xb3, 0x42, 0x13, 0xcd, 0x90, 0x05, 0x00,
 	0x00,
 }
 
@@ -378,6 +641,7 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DbufServiceClient interface {
 	GetCurrentState(ctx context.Context, in *GetCurrentStateRequest, opts ...grpc.CallOption) (*GetCurrentStateResponse, error)
+	GetQueueState(ctx context.Context, in *GetQueueStateRequest, opts ...grpc.CallOption) (*GetQueueStateResponse, error)
 	ReleasePackets(ctx context.Context, in *ReleasePacketsRequest, opts ...grpc.CallOption) (*ReleasePacketsResponse, error)
 	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (DbufService_SubscribeClient, error)
 }
@@ -393,6 +657,15 @@ func NewDbufServiceClient(cc grpc.ClientConnInterface) DbufServiceClient {
 func (c *dbufServiceClient) GetCurrentState(ctx context.Context, in *GetCurrentStateRequest, opts ...grpc.CallOption) (*GetCurrentStateResponse, error) {
 	out := new(GetCurrentStateResponse)
 	err := c.cc.Invoke(ctx, "/dbuf.DbufService/GetCurrentState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dbufServiceClient) GetQueueState(ctx context.Context, in *GetQueueStateRequest, opts ...grpc.CallOption) (*GetQueueStateResponse, error) {
+	out := new(GetQueueStateResponse)
+	err := c.cc.Invoke(ctx, "/dbuf.DbufService/GetQueueState", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -443,6 +716,7 @@ func (x *dbufServiceSubscribeClient) Recv() (*Notification, error) {
 // DbufServiceServer is the server API for DbufService service.
 type DbufServiceServer interface {
 	GetCurrentState(context.Context, *GetCurrentStateRequest) (*GetCurrentStateResponse, error)
+	GetQueueState(context.Context, *GetQueueStateRequest) (*GetQueueStateResponse, error)
 	ReleasePackets(context.Context, *ReleasePacketsRequest) (*ReleasePacketsResponse, error)
 	Subscribe(*SubscribeRequest, DbufService_SubscribeServer) error
 }
@@ -453,6 +727,9 @@ type UnimplementedDbufServiceServer struct {
 
 func (*UnimplementedDbufServiceServer) GetCurrentState(ctx context.Context, req *GetCurrentStateRequest) (*GetCurrentStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentState not implemented")
+}
+func (*UnimplementedDbufServiceServer) GetQueueState(ctx context.Context, req *GetQueueStateRequest) (*GetQueueStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetQueueState not implemented")
 }
 func (*UnimplementedDbufServiceServer) ReleasePackets(ctx context.Context, req *ReleasePacketsRequest) (*ReleasePacketsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReleasePackets not implemented")
@@ -479,6 +756,24 @@ func _DbufService_GetCurrentState_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DbufServiceServer).GetCurrentState(ctx, req.(*GetCurrentStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DbufService_GetQueueState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetQueueStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DbufServiceServer).GetQueueState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dbuf.DbufService/GetQueueState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DbufServiceServer).GetQueueState(ctx, req.(*GetQueueStateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -529,6 +824,10 @@ var _DbufService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCurrentState",
 			Handler:    _DbufService_GetCurrentState_Handler,
+		},
+		{
+			MethodName: "GetQueueState",
+			Handler:    _DbufService_GetQueueState_Handler,
 		},
 		{
 			MethodName: "ReleasePackets",
