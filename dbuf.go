@@ -1,22 +1,45 @@
 package dbuf
 
 import (
+	"expvar"
+	_ "expvar"
 	"flag"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 var (
-	externalDbufUrl = flag.String("external_dbuf_url", "localhost:10000", "URL for server to listen to for external calls from SDN controller, etc")
-	dataPlaneUrls   = flag.String("data_plane_urls", "localhost:2152", "Comma-separated list of URLs for server to listen for data plane packets")
+	externalDbufUrl = flag.String(
+		"external_dbuf_url", "0.0.0.0:10000",
+		"URL for server to listen to for external calls from SDN controller, etc",
+	)
+	dataPlaneUrls = flag.String(
+		"data_plane_urls", "0.0.0.0:2152",
+		"Comma-separated list of URLs for server to listen for data plane packets",
+	)
+	stats = expvar.NewMap("counters")
 )
 
+const rxOkStatKey string = "rx_ok"
+const txOkStatKey string = "tx_ok"
+const rxDropStatKey string = "rx_drop"
+const txDropStatKey string = "tx_drop"
+const queueFullDropStatKey string = "queue_full_discarded_packets"
+const queueReleasedStatKey string = "queue_released_packets"
+const queueDroppedStatKey string = "queue_dropped_packets"
+
+func init() {
+	stats.Add(queueFullDropStatKey, 0)
+}
+
 type Dbuf struct {
-	dl         *dataPlaneListener
+	di         *dataPlaneInterface
 	bq         *BufferQueue
 	grpcServer *grpc.Server
 	signals    chan os.Signal
@@ -24,31 +47,38 @@ type Dbuf struct {
 
 func NewDbuf() *Dbuf {
 	d := &Dbuf{}
-	d.dl = NewDataPlaneListener()
-	d.bq = NewBufferQueue(d.dl)
+	d.di = NewDataPlaneInterface()
+	d.bq = NewBufferQueue(d.di)
 	d.signals = make(chan os.Signal, 1)
 	return d
 }
 
 func (dbuf *Dbuf) Run() (err error) {
+	// Start metrics server.
+	go func() {
+		log.Println(http.ListenAndServe("localhost:8080", nil))
+	}()
+
 	// Setup signal handler.
 	signal.Notify(dbuf.signals, syscall.SIGINT)
 
-	// Start dataplane listener.
-	if err = dbuf.dl.Start(*dataPlaneUrls); err != nil {
+	// Start buffer queue.
+	if err = dbuf.bq.Start(); err != nil {
 		return
 	}
 
-	// Start buffer queue.
-	if err = dbuf.bq.Start(dbuf.dl); err != nil {
+	// Start dataplane interface.
+	if err = dbuf.di.Start(*dataPlaneUrls); err != nil {
 		return
 	}
+	log.Printf("Listening for GTP packets on %v", *dataPlaneUrls)
 
 	// Create gRPC service.
 	lis, err := net.Listen("tcp", *externalDbufUrl)
 	if err != nil {
 		return
 	}
+	log.Printf("Listening for gRPC requests on %v", *externalDbufUrl)
 	dbuf.grpcServer = grpc.NewServer()
 	RegisterDbufServiceServer(dbuf.grpcServer, newDbufService(dbuf.bq))
 
@@ -65,7 +95,7 @@ func (dbuf *Dbuf) Run() (err error) {
 }
 
 func (dbuf *Dbuf) Stop() (err error) {
-	dbuf.dl.Stop()
+	dbuf.di.Stop()
 	dbuf.grpcServer.Stop()
 	close(dbuf.signals)
 	return

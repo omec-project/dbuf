@@ -2,6 +2,8 @@ package dbuf
 
 import (
 	"context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"log"
 )
 
@@ -16,18 +18,16 @@ func newDbufService(bq *BufferQueue) *dbufService {
 	return s
 }
 
-func (s *dbufService) GetCurrentState(ctx context.Context, req *GetCurrentStateRequest) (*GetCurrentStateResponse, error) {
+func (s *dbufService) GetDbufState(
+	ctx context.Context, req *GetDbufStateRequest,
+) (*GetDbufStateResponse, error) {
 	state := s.bq.GetState()
-	resp := &GetCurrentStateResponse{}
-	resp.FreeBuffers = uint64(state.freeBufferIds)
-	resp.MaximumBuffers = uint64(state.maximumBufferIds)
-	resp.FreeMemory = uint64(state.freeMemory)
-	resp.MaximumMemory = uint64(state.maximumMemory)
-
-	return resp, nil
+	return &state, nil
 }
 
-func (s *dbufService) GetQueueState(ctx context.Context, req *GetQueueStateRequest) (*GetQueueStateResponse, error) {
+func (s *dbufService) GetQueueState(
+	ctx context.Context, req *GetQueueStateRequest,
+) (*GetQueueStateResponse, error) {
 	state, err := s.bq.GetQueueState(req.QueueId)
 	if err != nil {
 		return nil, err
@@ -36,11 +36,24 @@ func (s *dbufService) GetQueueState(ctx context.Context, req *GetQueueStateReque
 	return &state, nil
 }
 
-func (s *dbufService) ReleasePackets(ctx context.Context, req *ReleasePacketsRequest) (*ReleasePacketsResponse, error) {
-	if err := s.bq.ReleasePackets(uint32(req.BufferId)); err != nil {
-		return nil, err
+func (s *dbufService) ModifyQueue(
+	ctx context.Context, req *QueueOperationRequest,
+) (*QueueOperationResponse, error) {
+	switch req.Action {
+	case QueueOperationRequest_QUEUE_ACTION_RELEASE:
+		if err := s.bq.ReleasePackets(uint32(req.BufferId), false); err != nil {
+			return nil, err
+		}
+	case QueueOperationRequest_QUEUE_ACTION_DROP:
+		if err := s.bq.ReleasePackets(uint32(req.BufferId), true); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, status.Errorf(
+			codes.InvalidArgument, "unknown queue operation: %v", req.Action,
+		)
 	}
-	resp := &ReleasePacketsResponse{}
+	resp := &QueueOperationResponse{}
 
 	return resp, nil
 }

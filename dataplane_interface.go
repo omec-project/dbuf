@@ -14,39 +14,25 @@ type udpPacket struct {
 	remoteAddress net.UDPAddr
 }
 
-type dataPlaneListener struct {
-	closeSignal   chan struct{}
+type dataPlaneInterface struct {
 	outputChannel chan udpPacket
 	udpConn       *net.UDPConn
 }
 
-func NewDataPlaneListener() *dataPlaneListener {
-	d := &dataPlaneListener{}
-	d.closeSignal = make(chan struct{})
+func NewDataPlaneInterface() *dataPlaneInterface {
+	d := &dataPlaneInterface{}
 	return d
 }
 
-func (d *dataPlaneListener) Start(listenUrls string) error {
+func (d *dataPlaneInterface) Start(listenUrls string) error {
+	stats.Add(rxDropStatKey, 0)
+	stats.Add(txDropStatKey, 0)
+
 	urls := strings.Split(listenUrls, ",")
 	// TODO: support multiple interfaces/urls
 	//for _, url := range urls {
 	//}
 	url := urls[0]
-
-	//ifs, err := net.Interfaces()
-	//if err != nil {
-	//	return err
-	//}
-	//for _, i := range ifs {
-	//	log.Printf("%+v", i)
-	//	addrs, err := i.Addrs()
-	//	if err != nil{
-	//		return err
-	//	}
-	//	for _, addr := range addrs {
-	//		log.Println("\t", addr)
-	//	}
-	//}
 
 	laddr, err := net.ResolveUDPAddr("udp", url)
 	if err != nil {
@@ -62,37 +48,32 @@ func (d *dataPlaneListener) Start(listenUrls string) error {
 	return nil
 }
 
-func (d *dataPlaneListener) Stop() {
+func (d *dataPlaneInterface) Stop() {
 	log.Println("DataplaneListener stopping")
-	select {
-	case d.closeSignal <- struct{}{}:
-	default:
-	}
-	log.Println("1")
-	close(d.closeSignal)
-	log.Println("2")
 	d.udpConn.Close()
 
 	log.Println("DataplaneListener stopped")
 }
 
-func (d *dataPlaneListener) Send(packet udpPacket) (err error) {
+func (d *dataPlaneInterface) Send(packet udpPacket) (err error) {
 	if err = d.udpConn.SetWriteDeadline(time.Now().Add(time.Second * 1)); err != nil {
 		return
 	}
 	_, err = d.udpConn.WriteToUDP(packet.payload, &packet.remoteAddress)
 	if err != nil {
+		stats.Add(txDropStatKey, 1)
 		return err
 	}
+	stats.Add(txOkStatKey, 1)
 
 	return
 }
 
-func (d *dataPlaneListener) SetOutputChannel(ch chan udpPacket) {
+func (d *dataPlaneInterface) SetOutputChannel(ch chan udpPacket) {
 	d.outputChannel = ch
 }
 
-func (d *dataPlaneListener) ReceiveFn() {
+func (d *dataPlaneInterface) ReceiveFn() {
 	for true {
 		buf := make([]byte, 2048)
 		n, raddr, err := d.udpConn.ReadFromUDP(buf)
@@ -104,14 +85,17 @@ func (d *dataPlaneListener) ReceiveFn() {
 		} else if err != nil {
 			log.Fatalf("%v", err)
 		}
+		stats.Add(rxOkStatKey, 1)
 		buf = buf[:n]
-		log.Printf("Recv %v bytes from %v: %v", n, raddr, buf)
+		//log.Printf("Recv %v bytes from %v: %v", n, raddr, buf)
+		//log.Printf("Recv %v bytes from %v", n, raddr)
 		p := udpPacket{
 			payload: buf, remoteAddress: *raddr,
 		}
 		select {
 		case d.outputChannel <- p:
 		default:
+			stats.Add(rxDropStatKey, 1)
 			log.Println("Dropped packet because channel is full")
 		}
 	}

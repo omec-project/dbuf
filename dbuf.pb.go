@@ -58,94 +58,130 @@ func (GetQueueStateResponse_QueuesState) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_60b6dc1b0941c986, []int{3, 0}
 }
 
-type GetCurrentStateRequest struct {
+type QueueOperationRequest_QueueAction int32
+
+const (
+	QueueOperationRequest_QUEUE_ACTION_INVALID QueueOperationRequest_QueueAction = 0
+	QueueOperationRequest_QUEUE_ACTION_RELEASE QueueOperationRequest_QueueAction = 1
+	QueueOperationRequest_QUEUE_ACTION_DROP    QueueOperationRequest_QueueAction = 2
+)
+
+var QueueOperationRequest_QueueAction_name = map[int32]string{
+	0: "QUEUE_ACTION_INVALID",
+	1: "QUEUE_ACTION_RELEASE",
+	2: "QUEUE_ACTION_DROP",
+}
+
+var QueueOperationRequest_QueueAction_value = map[string]int32{
+	"QUEUE_ACTION_INVALID": 0,
+	"QUEUE_ACTION_RELEASE": 1,
+	"QUEUE_ACTION_DROP":    2,
+}
+
+func (x QueueOperationRequest_QueueAction) String() string {
+	return proto.EnumName(QueueOperationRequest_QueueAction_name, int32(x))
+}
+
+func (QueueOperationRequest_QueueAction) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_60b6dc1b0941c986, []int{4, 0}
+}
+
+type GetDbufStateRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetCurrentStateRequest) Reset()         { *m = GetCurrentStateRequest{} }
-func (m *GetCurrentStateRequest) String() string { return proto.CompactTextString(m) }
-func (*GetCurrentStateRequest) ProtoMessage()    {}
-func (*GetCurrentStateRequest) Descriptor() ([]byte, []int) {
+func (m *GetDbufStateRequest) Reset()         { *m = GetDbufStateRequest{} }
+func (m *GetDbufStateRequest) String() string { return proto.CompactTextString(m) }
+func (*GetDbufStateRequest) ProtoMessage()    {}
+func (*GetDbufStateRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_60b6dc1b0941c986, []int{0}
 }
 
-func (m *GetCurrentStateRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetCurrentStateRequest.Unmarshal(m, b)
+func (m *GetDbufStateRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetDbufStateRequest.Unmarshal(m, b)
 }
-func (m *GetCurrentStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetCurrentStateRequest.Marshal(b, m, deterministic)
+func (m *GetDbufStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetDbufStateRequest.Marshal(b, m, deterministic)
 }
-func (m *GetCurrentStateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetCurrentStateRequest.Merge(m, src)
+func (m *GetDbufStateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDbufStateRequest.Merge(m, src)
 }
-func (m *GetCurrentStateRequest) XXX_Size() int {
-	return xxx_messageInfo_GetCurrentStateRequest.Size(m)
+func (m *GetDbufStateRequest) XXX_Size() int {
+	return xxx_messageInfo_GetDbufStateRequest.Size(m)
 }
-func (m *GetCurrentStateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetCurrentStateRequest.DiscardUnknown(m)
+func (m *GetDbufStateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetDbufStateRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetCurrentStateRequest proto.InternalMessageInfo
+var xxx_messageInfo_GetDbufStateRequest proto.InternalMessageInfo
 
-type GetCurrentStateResponse struct {
-	MaximumBuffers       uint64   `protobuf:"varint,1,opt,name=maximum_buffers,json=maximumBuffers,proto3" json:"maximum_buffers,omitempty"`
-	FreeBuffers          uint64   `protobuf:"varint,2,opt,name=free_buffers,json=freeBuffers,proto3" json:"free_buffers,omitempty"`
-	MaximumMemory        uint64   `protobuf:"varint,3,opt,name=maximum_memory,json=maximumMemory,proto3" json:"maximum_memory,omitempty"`
-	FreeMemory           uint64   `protobuf:"varint,4,opt,name=free_memory,json=freeMemory,proto3" json:"free_memory,omitempty"`
+type GetDbufStateResponse struct {
+	QueueIdLow           uint64   `protobuf:"varint,1,opt,name=queue_id_low,json=queueIdLow,proto3" json:"queue_id_low,omitempty"`
+	QueueIdHigh          uint64   `protobuf:"varint,2,opt,name=queue_id_high,json=queueIdHigh,proto3" json:"queue_id_high,omitempty"`
+	FreeQueues           uint64   `protobuf:"varint,3,opt,name=free_queues,json=freeQueues,proto3" json:"free_queues,omitempty"`
+	MaximumMemory        uint64   `protobuf:"varint,4,opt,name=maximum_memory,json=maximumMemory,proto3" json:"maximum_memory,omitempty"`
+	FreeMemory           uint64   `protobuf:"varint,5,opt,name=free_memory,json=freeMemory,proto3" json:"free_memory,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetCurrentStateResponse) Reset()         { *m = GetCurrentStateResponse{} }
-func (m *GetCurrentStateResponse) String() string { return proto.CompactTextString(m) }
-func (*GetCurrentStateResponse) ProtoMessage()    {}
-func (*GetCurrentStateResponse) Descriptor() ([]byte, []int) {
+func (m *GetDbufStateResponse) Reset()         { *m = GetDbufStateResponse{} }
+func (m *GetDbufStateResponse) String() string { return proto.CompactTextString(m) }
+func (*GetDbufStateResponse) ProtoMessage()    {}
+func (*GetDbufStateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_60b6dc1b0941c986, []int{1}
 }
 
-func (m *GetCurrentStateResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetCurrentStateResponse.Unmarshal(m, b)
+func (m *GetDbufStateResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetDbufStateResponse.Unmarshal(m, b)
 }
-func (m *GetCurrentStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetCurrentStateResponse.Marshal(b, m, deterministic)
+func (m *GetDbufStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetDbufStateResponse.Marshal(b, m, deterministic)
 }
-func (m *GetCurrentStateResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetCurrentStateResponse.Merge(m, src)
+func (m *GetDbufStateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDbufStateResponse.Merge(m, src)
 }
-func (m *GetCurrentStateResponse) XXX_Size() int {
-	return xxx_messageInfo_GetCurrentStateResponse.Size(m)
+func (m *GetDbufStateResponse) XXX_Size() int {
+	return xxx_messageInfo_GetDbufStateResponse.Size(m)
 }
-func (m *GetCurrentStateResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetCurrentStateResponse.DiscardUnknown(m)
+func (m *GetDbufStateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetDbufStateResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetCurrentStateResponse proto.InternalMessageInfo
+var xxx_messageInfo_GetDbufStateResponse proto.InternalMessageInfo
 
-func (m *GetCurrentStateResponse) GetMaximumBuffers() uint64 {
+func (m *GetDbufStateResponse) GetQueueIdLow() uint64 {
 	if m != nil {
-		return m.MaximumBuffers
+		return m.QueueIdLow
 	}
 	return 0
 }
 
-func (m *GetCurrentStateResponse) GetFreeBuffers() uint64 {
+func (m *GetDbufStateResponse) GetQueueIdHigh() uint64 {
 	if m != nil {
-		return m.FreeBuffers
+		return m.QueueIdHigh
 	}
 	return 0
 }
 
-func (m *GetCurrentStateResponse) GetMaximumMemory() uint64 {
+func (m *GetDbufStateResponse) GetFreeQueues() uint64 {
+	if m != nil {
+		return m.FreeQueues
+	}
+	return 0
+}
+
+func (m *GetDbufStateResponse) GetMaximumMemory() uint64 {
 	if m != nil {
 		return m.MaximumMemory
 	}
 	return 0
 }
 
-func (m *GetCurrentStateResponse) GetFreeMemory() uint64 {
+func (m *GetDbufStateResponse) GetFreeMemory() uint64 {
 	if m != nil {
 		return m.FreeMemory
 	}
@@ -262,75 +298,83 @@ func (m *GetQueueStateResponse) GetState() GetQueueStateResponse_QueuesState {
 	return GetQueueStateResponse_QUEUE_STATE_INVALID
 }
 
-type ReleasePacketsRequest struct {
-	BufferId             uint64   `protobuf:"varint,1,opt,name=buffer_id,json=bufferId,proto3" json:"buffer_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+type QueueOperationRequest struct {
+	Action               QueueOperationRequest_QueueAction `protobuf:"varint,1,opt,name=action,proto3,enum=dbuf.QueueOperationRequest_QueueAction" json:"action,omitempty"`
+	BufferId             uint64                            `protobuf:"varint,2,opt,name=buffer_id,json=bufferId,proto3" json:"buffer_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
+	XXX_unrecognized     []byte                            `json:"-"`
+	XXX_sizecache        int32                             `json:"-"`
 }
 
-func (m *ReleasePacketsRequest) Reset()         { *m = ReleasePacketsRequest{} }
-func (m *ReleasePacketsRequest) String() string { return proto.CompactTextString(m) }
-func (*ReleasePacketsRequest) ProtoMessage()    {}
-func (*ReleasePacketsRequest) Descriptor() ([]byte, []int) {
+func (m *QueueOperationRequest) Reset()         { *m = QueueOperationRequest{} }
+func (m *QueueOperationRequest) String() string { return proto.CompactTextString(m) }
+func (*QueueOperationRequest) ProtoMessage()    {}
+func (*QueueOperationRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_60b6dc1b0941c986, []int{4}
 }
 
-func (m *ReleasePacketsRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReleasePacketsRequest.Unmarshal(m, b)
+func (m *QueueOperationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_QueueOperationRequest.Unmarshal(m, b)
 }
-func (m *ReleasePacketsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReleasePacketsRequest.Marshal(b, m, deterministic)
+func (m *QueueOperationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_QueueOperationRequest.Marshal(b, m, deterministic)
 }
-func (m *ReleasePacketsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReleasePacketsRequest.Merge(m, src)
+func (m *QueueOperationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueueOperationRequest.Merge(m, src)
 }
-func (m *ReleasePacketsRequest) XXX_Size() int {
-	return xxx_messageInfo_ReleasePacketsRequest.Size(m)
+func (m *QueueOperationRequest) XXX_Size() int {
+	return xxx_messageInfo_QueueOperationRequest.Size(m)
 }
-func (m *ReleasePacketsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReleasePacketsRequest.DiscardUnknown(m)
+func (m *QueueOperationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueueOperationRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReleasePacketsRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueueOperationRequest proto.InternalMessageInfo
 
-func (m *ReleasePacketsRequest) GetBufferId() uint64 {
+func (m *QueueOperationRequest) GetAction() QueueOperationRequest_QueueAction {
+	if m != nil {
+		return m.Action
+	}
+	return QueueOperationRequest_QUEUE_ACTION_INVALID
+}
+
+func (m *QueueOperationRequest) GetBufferId() uint64 {
 	if m != nil {
 		return m.BufferId
 	}
 	return 0
 }
 
-type ReleasePacketsResponse struct {
+type QueueOperationResponse struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ReleasePacketsResponse) Reset()         { *m = ReleasePacketsResponse{} }
-func (m *ReleasePacketsResponse) String() string { return proto.CompactTextString(m) }
-func (*ReleasePacketsResponse) ProtoMessage()    {}
-func (*ReleasePacketsResponse) Descriptor() ([]byte, []int) {
+func (m *QueueOperationResponse) Reset()         { *m = QueueOperationResponse{} }
+func (m *QueueOperationResponse) String() string { return proto.CompactTextString(m) }
+func (*QueueOperationResponse) ProtoMessage()    {}
+func (*QueueOperationResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_60b6dc1b0941c986, []int{5}
 }
 
-func (m *ReleasePacketsResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReleasePacketsResponse.Unmarshal(m, b)
+func (m *QueueOperationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_QueueOperationResponse.Unmarshal(m, b)
 }
-func (m *ReleasePacketsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReleasePacketsResponse.Marshal(b, m, deterministic)
+func (m *QueueOperationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_QueueOperationResponse.Marshal(b, m, deterministic)
 }
-func (m *ReleasePacketsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReleasePacketsResponse.Merge(m, src)
+func (m *QueueOperationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueueOperationResponse.Merge(m, src)
 }
-func (m *ReleasePacketsResponse) XXX_Size() int {
-	return xxx_messageInfo_ReleasePacketsResponse.Size(m)
+func (m *QueueOperationResponse) XXX_Size() int {
+	return xxx_messageInfo_QueueOperationResponse.Size(m)
 }
-func (m *ReleasePacketsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReleasePacketsResponse.DiscardUnknown(m)
+func (m *QueueOperationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueueOperationResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReleasePacketsResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueueOperationResponse proto.InternalMessageInfo
 
 type SubscribeRequest struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -569,12 +613,13 @@ func (m *Notification_DroppedPacket) GetQueueId() uint32 {
 
 func init() {
 	proto.RegisterEnum("dbuf.GetQueueStateResponse_QueuesState", GetQueueStateResponse_QueuesState_name, GetQueueStateResponse_QueuesState_value)
-	proto.RegisterType((*GetCurrentStateRequest)(nil), "dbuf.GetCurrentStateRequest")
-	proto.RegisterType((*GetCurrentStateResponse)(nil), "dbuf.GetCurrentStateResponse")
+	proto.RegisterEnum("dbuf.QueueOperationRequest_QueueAction", QueueOperationRequest_QueueAction_name, QueueOperationRequest_QueueAction_value)
+	proto.RegisterType((*GetDbufStateRequest)(nil), "dbuf.GetDbufStateRequest")
+	proto.RegisterType((*GetDbufStateResponse)(nil), "dbuf.GetDbufStateResponse")
 	proto.RegisterType((*GetQueueStateRequest)(nil), "dbuf.GetQueueStateRequest")
 	proto.RegisterType((*GetQueueStateResponse)(nil), "dbuf.GetQueueStateResponse")
-	proto.RegisterType((*ReleasePacketsRequest)(nil), "dbuf.ReleasePacketsRequest")
-	proto.RegisterType((*ReleasePacketsResponse)(nil), "dbuf.ReleasePacketsResponse")
+	proto.RegisterType((*QueueOperationRequest)(nil), "dbuf.QueueOperationRequest")
+	proto.RegisterType((*QueueOperationResponse)(nil), "dbuf.QueueOperationResponse")
 	proto.RegisterType((*SubscribeRequest)(nil), "dbuf.SubscribeRequest")
 	proto.RegisterType((*Notification)(nil), "dbuf.Notification")
 	proto.RegisterType((*Notification_Ready)(nil), "dbuf.Notification.Ready")
@@ -585,47 +630,53 @@ func init() {
 func init() { proto.RegisterFile("dbuf.proto", fileDescriptor_60b6dc1b0941c986) }
 
 var fileDescriptor_60b6dc1b0941c986 = []byte{
-	// 625 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x54, 0x4d, 0x53, 0xd3, 0x50,
-	0x14, 0x6d, 0x4a, 0x2b, 0x70, 0xd3, 0x94, 0xfa, 0xa4, 0x50, 0x02, 0x22, 0x66, 0xc6, 0x81, 0x71,
-	0xc6, 0x02, 0xd5, 0x8d, 0x0b, 0x17, 0x94, 0xb6, 0x34, 0x23, 0x74, 0x20, 0xa5, 0xce, 0xe8, 0x26,
-	0x93, 0x8f, 0x1b, 0x8c, 0x9a, 0x26, 0x24, 0x2f, 0x22, 0xff, 0xc0, 0x3f, 0xe3, 0xf8, 0x37, 0xfc,
-	0x43, 0xee, 0x9d, 0xbc, 0x97, 0x96, 0xb4, 0x44, 0xd7, 0xee, 0x9a, 0x73, 0xce, 0xbd, 0xbd, 0xef,
-	0x9e, 0xf3, 0x1e, 0x80, 0x6d, 0xc6, 0x4e, 0x33, 0x08, 0x7d, 0xea, 0x93, 0x52, 0xf2, 0x5b, 0x69,
-	0xc0, 0xda, 0x09, 0xd2, 0xe3, 0x38, 0x0c, 0x71, 0x4c, 0x87, 0xd4, 0xa0, 0xa8, 0xe1, 0x75, 0x8c,
-	0x11, 0x55, 0x7e, 0x08, 0xb0, 0x7e, 0x8f, 0x8a, 0x02, 0x7f, 0x1c, 0x21, 0xd9, 0x85, 0x15, 0xcf,
-	0xf8, 0xe6, 0x7a, 0xb1, 0xa7, 0x9b, 0xb1, 0xe3, 0x60, 0x18, 0x35, 0x84, 0x1d, 0x61, 0xaf, 0xa4,
-	0x55, 0x53, 0xb8, 0xcd, 0x51, 0xf2, 0x14, 0x2a, 0x4e, 0x88, 0x38, 0x55, 0x15, 0x99, 0x4a, 0x4c,
-	0xb0, 0x89, 0xe4, 0x19, 0x4c, 0x8a, 0x74, 0x0f, 0x3d, 0x3f, 0xbc, 0x6d, 0x2c, 0x30, 0x91, 0x94,
-	0xa2, 0x67, 0x0c, 0x24, 0x4f, 0x80, 0x55, 0x4d, 0x34, 0x25, 0xa6, 0x81, 0x04, 0xe2, 0x02, 0xe5,
-	0x10, 0x56, 0x4f, 0x90, 0x5e, 0xc4, 0x18, 0x63, 0xf6, 0x1c, 0x64, 0x03, 0x96, 0xae, 0x13, 0x50,
-	0x77, 0xed, 0x74, 0xc8, 0x45, 0xf6, 0xad, 0xda, 0xca, 0xef, 0x22, 0xd4, 0xe7, 0x6a, 0xfe, 0xdf,
-	0x03, 0x92, 0x37, 0x50, 0x8e, 0x92, 0x21, 0x1b, 0xe5, 0x1d, 0x61, 0xaf, 0xda, 0xda, 0x6d, 0x32,
-	0x33, 0x73, 0xe7, 0x6f, 0x32, 0x28, 0xe2, 0x18, 0xaf, 0x52, 0xbe, 0x0b, 0x20, 0x66, 0x60, 0xb2,
-	0x0e, 0x8f, 0x2e, 0x46, 0xdd, 0x51, 0x57, 0x1f, 0x5e, 0x1e, 0x5d, 0x76, 0x75, 0x75, 0xf0, 0xee,
-	0xe8, 0x54, 0xed, 0xd4, 0x0a, 0xa4, 0x0e, 0x0f, 0xb3, 0x44, 0xf7, 0xec, 0xfc, 0xf2, 0x7d, 0x4d,
-	0x20, 0x1b, 0x50, 0xcf, 0xc2, 0xed, 0x51, 0xaf, 0xd7, 0xd5, 0xd4, 0xc1, 0x49, 0xad, 0x48, 0x1a,
-	0xb0, 0x9a, 0xa5, 0x3a, 0xda, 0x91, 0x3a, 0x48, 0x98, 0x05, 0xb2, 0x0a, 0xb5, 0x2c, 0xd3, 0x1b,
-	0x9d, 0x9e, 0xd6, 0x4a, 0xca, 0x2b, 0xa8, 0x6b, 0xf8, 0x05, 0x8d, 0x08, 0xcf, 0x0d, 0xeb, 0x33,
-	0xd2, 0x68, 0xe2, 0xd5, 0x26, 0x2c, 0xf3, 0x45, 0xde, 0x99, 0xb5, 0xc4, 0x01, 0xd5, 0x4e, 0xa2,
-	0x3a, 0x5f, 0xc5, 0x4f, 0xab, 0x10, 0xa8, 0x0d, 0x63, 0x33, 0xb2, 0x42, 0xd7, 0x9c, 0xc6, 0xf7,
-	0x57, 0x11, 0x2a, 0x03, 0x9f, 0xba, 0x8e, 0x6b, 0x19, 0xd4, 0xf5, 0xc7, 0xe4, 0x00, 0xca, 0x21,
-	0x1a, 0xf6, 0x2d, 0xeb, 0x2b, 0xb6, 0x1a, 0x7c, 0x7d, 0x59, 0x49, 0x53, 0x4b, 0xf8, 0x7e, 0x41,
-	0xe3, 0x42, 0x72, 0x0c, 0x15, 0xc7, 0x0d, 0x23, 0x9a, 0x9a, 0xcb, 0xbc, 0x15, 0x5b, 0xdb, 0x39,
-	0x85, 0xbd, 0x44, 0xc6, 0xfd, 0xee, 0x17, 0x34, 0xd1, 0xb9, 0xfb, 0x24, 0x2a, 0x54, 0xed, 0xd0,
-	0x0f, 0x02, 0xb4, 0xf5, 0x80, 0x8d, 0xcd, 0xdc, 0x17, 0x5b, 0x3b, 0x39, 0x6d, 0x3a, 0x5c, 0xc8,
-	0x8f, 0xd7, 0x2f, 0x68, 0x92, 0x9d, 0x05, 0xe4, 0x45, 0x28, 0xb3, 0x09, 0xe5, 0x43, 0x10, 0x33,
-	0xff, 0x48, 0x14, 0x90, 0xc6, 0x78, 0xa3, 0xcf, 0x6e, 0x4e, 0xd2, 0xc4, 0x31, 0xde, 0xb4, 0xd3,
-	0xe5, 0xc9, 0xcf, 0x41, 0x9a, 0xe9, 0x7e, 0xef, 0x5a, 0x48, 0xd3, 0x6b, 0xd1, 0xae, 0x42, 0xc5,
-	0xc3, 0x28, 0x32, 0xae, 0x50, 0xa7, 0xb7, 0x01, 0xb6, 0x7e, 0x16, 0x41, 0xec, 0x98, 0xb1, 0x33,
-	0xc4, 0xf0, 0xab, 0x6b, 0x21, 0x19, 0xc0, 0xca, 0xdc, 0xc3, 0x40, 0xb6, 0xa6, 0x61, 0xcc, 0x79,
-	0x4a, 0xe4, 0xc7, 0x7f, 0x61, 0xd3, 0xcb, 0xd6, 0x07, 0x69, 0x26, 0xc5, 0x44, 0xce, 0x8d, 0x36,
-	0xef, 0xb5, 0xf9, 0x8f, 0xd8, 0x93, 0xb7, 0x50, 0x9d, 0x8d, 0x08, 0x49, 0xe5, 0xb9, 0x71, 0x93,
-	0xb7, 0xf2, 0xc9, 0xb4, 0xd9, 0x6b, 0x58, 0x9e, 0xa6, 0x8a, 0xac, 0x71, 0xe9, 0x7c, 0xcc, 0x64,
-	0x72, 0xdf, 0xc6, 0x03, 0xa1, 0xbd, 0xfd, 0x61, 0xeb, 0xca, 0xa5, 0x1f, 0x63, 0xb3, 0x69, 0xf9,
-	0xde, 0xbe, 0xef, 0xa1, 0xf5, 0x22, 0x08, 0xfd, 0x4f, 0x68, 0xd1, 0xfd, 0x44, 0x6e, 0x3e, 0x60,
-	0x4f, 0xf0, 0xcb, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xb3, 0x42, 0x13, 0xcd, 0x90, 0x05, 0x00,
-	0x00,
+	// 726 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x55, 0x5d, 0x6f, 0xd2, 0x50,
+	0x18, 0xa6, 0x0c, 0xf6, 0xf1, 0x16, 0xb0, 0x9e, 0x8d, 0xc9, 0xba, 0x65, 0xce, 0x26, 0x66, 0xc6,
+	0x44, 0xb6, 0xe1, 0x95, 0x17, 0xc6, 0xc0, 0x28, 0xa3, 0x09, 0x63, 0x5b, 0x01, 0xa3, 0xde, 0x34,
+	0xd0, 0x9e, 0x42, 0xd5, 0xd2, 0xae, 0x1f, 0x22, 0xff, 0xc0, 0xff, 0xe1, 0x6f, 0x31, 0xf1, 0xce,
+	0x5f, 0xe3, 0xbd, 0xe9, 0x39, 0x87, 0xd2, 0xb1, 0x66, 0xf1, 0x0e, 0x9e, 0xf7, 0x79, 0x5f, 0x9e,
+	0xe7, 0xfd, 0x38, 0x00, 0x18, 0xa3, 0xd0, 0xac, 0xba, 0x9e, 0x13, 0x38, 0x28, 0x17, 0x7d, 0x96,
+	0xca, 0xb0, 0x7d, 0x81, 0x83, 0xe6, 0x28, 0x34, 0x7b, 0xc1, 0x30, 0xc0, 0x2a, 0xbe, 0x0d, 0xb1,
+	0x1f, 0x48, 0xbf, 0x38, 0xd8, 0xb9, 0x8b, 0xfb, 0xae, 0x33, 0xf5, 0x31, 0x3a, 0x82, 0xc2, 0x6d,
+	0x88, 0x43, 0xac, 0x59, 0x86, 0xf6, 0xd5, 0x99, 0x55, 0xb8, 0x23, 0xee, 0x45, 0x4e, 0x05, 0x82,
+	0x29, 0x46, 0xc7, 0x99, 0x21, 0x09, 0x8a, 0x31, 0x63, 0x62, 0x8d, 0x27, 0x95, 0x2c, 0xa1, 0xf0,
+	0x8c, 0xd2, 0xb6, 0xc6, 0x13, 0xf4, 0x14, 0x78, 0xd3, 0xc3, 0x58, 0x23, 0x98, 0x5f, 0x59, 0xa3,
+	0x45, 0x22, 0xe8, 0x86, 0x20, 0xe8, 0x39, 0x94, 0xec, 0xe1, 0x77, 0xcb, 0x0e, 0x6d, 0xcd, 0xc6,
+	0xb6, 0xe3, 0xcd, 0x2b, 0x39, 0xc2, 0x29, 0x32, 0xf4, 0x92, 0x80, 0x71, 0x1d, 0xc6, 0xc9, 0x2f,
+	0xeb, 0x50, 0x82, 0x74, 0x46, 0x6c, 0x90, 0xa2, 0x49, 0x7f, 0x68, 0x0f, 0x36, 0x17, 0x22, 0x99,
+	0x85, 0x0d, 0xa6, 0x4f, 0xfa, 0x9b, 0x85, 0xf2, 0x4a, 0x0e, 0xf3, 0x7e, 0x0c, 0x8f, 0x16, 0xa2,
+	0x46, 0xa1, 0x69, 0x62, 0xcf, 0x67, 0xb9, 0x0b, 0xad, 0x0d, 0x8a, 0xa2, 0x67, 0x50, 0x20, 0xb2,
+	0x16, 0x2c, 0xd6, 0x81, 0x08, 0x5b, 0x50, 0xee, 0x1b, 0x5c, 0xfb, 0x0f, 0x83, 0xb9, 0x55, 0x83,
+	0xe8, 0x2d, 0xe4, 0xfd, 0x48, 0x24, 0xf1, 0x5e, 0xaa, 0x1d, 0x57, 0xc9, 0x84, 0x53, 0xf5, 0x57,
+	0x69, 0x6f, 0x29, 0x46, 0xb3, 0xa4, 0x1f, 0x1c, 0xf0, 0x09, 0x18, 0x3d, 0x81, 0xed, 0x9b, 0x81,
+	0x3c, 0x90, 0xb5, 0x5e, 0xbf, 0xde, 0x97, 0x35, 0xa5, 0xfb, 0xbe, 0xde, 0x51, 0x9a, 0x42, 0x06,
+	0x95, 0xe1, 0x71, 0x32, 0x20, 0x5f, 0x5e, 0xf7, 0x3f, 0x0a, 0x1c, 0xda, 0x83, 0x72, 0x12, 0x6e,
+	0x0c, 0x5a, 0x2d, 0x59, 0x55, 0xba, 0x17, 0x42, 0x16, 0x55, 0x60, 0x27, 0x19, 0x6a, 0xaa, 0x75,
+	0xa5, 0x1b, 0x45, 0xd6, 0xd0, 0x0e, 0x08, 0xc9, 0x48, 0x6b, 0xd0, 0xe9, 0x08, 0x39, 0xe9, 0x0f,
+	0x07, 0x65, 0x22, 0xe5, 0xca, 0xc5, 0xde, 0x30, 0xb0, 0x9c, 0xe9, 0x62, 0x58, 0xef, 0x60, 0x7d,
+	0xa8, 0x47, 0x00, 0x69, 0x77, 0x6c, 0x32, 0x95, 0x4c, 0xd1, 0x3a, 0xa1, 0xab, 0x2c, 0x0d, 0xed,
+	0xc3, 0x16, 0x1d, 0x45, 0x34, 0x6e, 0x3a, 0x8c, 0x4d, 0x0a, 0x28, 0x86, 0xf4, 0x81, 0x75, 0x80,
+	0xe6, 0x2c, 0x65, 0xd7, 0xcf, 0xfb, 0xca, 0x55, 0x37, 0xd1, 0x82, 0xd5, 0x88, 0x2a, 0x77, 0xe4,
+	0x7a, 0x4f, 0x16, 0xb8, 0x65, 0x73, 0x58, 0xa4, 0xa9, 0x5e, 0x5d, 0x0b, 0x59, 0xa9, 0x02, 0xbb,
+	0xab, 0x1a, 0xe9, 0x24, 0x24, 0x04, 0x42, 0x2f, 0x1c, 0xf9, 0xba, 0x67, 0x8d, 0xe2, 0x93, 0xfb,
+	0x9d, 0x85, 0x42, 0xd7, 0x09, 0x2c, 0xd3, 0xd2, 0x09, 0x19, 0x9d, 0x42, 0xde, 0xc3, 0x43, 0x63,
+	0x4e, 0x5c, 0xf3, 0xb5, 0x0a, 0x75, 0x9d, 0xa4, 0x54, 0xd5, 0x28, 0xde, 0xce, 0xa8, 0x94, 0x88,
+	0xce, 0xa1, 0x60, 0x5a, 0x9e, 0x1f, 0xb0, 0xc5, 0x23, 0x56, 0xf9, 0xda, 0x61, 0x4a, 0x62, 0x2b,
+	0xa2, 0xd1, 0x5d, 0x6c, 0x67, 0x54, 0xde, 0x5c, 0x7e, 0x45, 0x0a, 0x94, 0x0c, 0xcf, 0x71, 0x5d,
+	0x6c, 0x68, 0xee, 0x50, 0xff, 0x82, 0x03, 0xb2, 0x99, 0x7c, 0xed, 0x28, 0xa5, 0x4c, 0x93, 0x12,
+	0xaf, 0x09, 0xaf, 0x9d, 0x51, 0x8b, 0x46, 0x12, 0x10, 0x37, 0x20, 0x4f, 0x14, 0x8a, 0x67, 0xc0,
+	0x27, 0x7e, 0x31, 0x7a, 0x22, 0xa6, 0x78, 0xa6, 0x2d, 0x67, 0x12, 0x39, 0x2c, 0xaa, 0xfc, 0x14,
+	0xcf, 0x1a, 0x6c, 0x2c, 0xe2, 0x4b, 0x28, 0xde, 0xa9, 0x7e, 0xef, 0x64, 0x8b, 0xf1, 0xc9, 0x36,
+	0x4a, 0x50, 0xb0, 0xb1, 0xef, 0x0f, 0xc7, 0x58, 0x0b, 0xe6, 0x2e, 0xae, 0xfd, 0xcc, 0x02, 0x4f,
+	0x9e, 0x2e, 0xec, 0x7d, 0xb3, 0x74, 0x8c, 0x64, 0x28, 0x24, 0x1f, 0x33, 0xb4, 0x17, 0x5f, 0xc9,
+	0xea, 0xc3, 0x27, 0x8a, 0x69, 0x21, 0x76, 0xff, 0x6d, 0x28, 0xde, 0x39, 0x2c, 0x24, 0xa6, 0x5e,
+	0x1b, 0x2d, 0xb4, 0xff, 0xc0, 0x25, 0xa2, 0x36, 0xf0, 0x97, 0x8e, 0x61, 0x99, 0x73, 0x12, 0x43,
+	0xfb, 0x0f, 0x2c, 0xb4, 0x78, 0x90, 0x1e, 0x64, 0x95, 0xde, 0xc0, 0x56, 0xbc, 0x49, 0x68, 0x97,
+	0x52, 0x57, 0x57, 0x4b, 0x44, 0xf7, 0x47, 0x77, 0xca, 0x35, 0x0e, 0x3f, 0x1d, 0x8c, 0xad, 0x60,
+	0x12, 0x8e, 0xaa, 0xba, 0x63, 0x9f, 0x38, 0x36, 0xd6, 0x5f, 0xb9, 0x9e, 0xf3, 0x19, 0xeb, 0xc1,
+	0x49, 0x44, 0x1f, 0xad, 0x93, 0xff, 0x89, 0xd7, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0xe5, 0xe0,
+	0x3d, 0x97, 0x35, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -640,9 +691,9 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DbufServiceClient interface {
-	GetCurrentState(ctx context.Context, in *GetCurrentStateRequest, opts ...grpc.CallOption) (*GetCurrentStateResponse, error)
+	GetDbufState(ctx context.Context, in *GetDbufStateRequest, opts ...grpc.CallOption) (*GetDbufStateResponse, error)
 	GetQueueState(ctx context.Context, in *GetQueueStateRequest, opts ...grpc.CallOption) (*GetQueueStateResponse, error)
-	ReleasePackets(ctx context.Context, in *ReleasePacketsRequest, opts ...grpc.CallOption) (*ReleasePacketsResponse, error)
+	ModifyQueue(ctx context.Context, in *QueueOperationRequest, opts ...grpc.CallOption) (*QueueOperationResponse, error)
 	Subscribe(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (DbufService_SubscribeClient, error)
 }
 
@@ -654,9 +705,9 @@ func NewDbufServiceClient(cc grpc.ClientConnInterface) DbufServiceClient {
 	return &dbufServiceClient{cc}
 }
 
-func (c *dbufServiceClient) GetCurrentState(ctx context.Context, in *GetCurrentStateRequest, opts ...grpc.CallOption) (*GetCurrentStateResponse, error) {
-	out := new(GetCurrentStateResponse)
-	err := c.cc.Invoke(ctx, "/dbuf.DbufService/GetCurrentState", in, out, opts...)
+func (c *dbufServiceClient) GetDbufState(ctx context.Context, in *GetDbufStateRequest, opts ...grpc.CallOption) (*GetDbufStateResponse, error) {
+	out := new(GetDbufStateResponse)
+	err := c.cc.Invoke(ctx, "/dbuf.DbufService/GetDbufState", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -672,9 +723,9 @@ func (c *dbufServiceClient) GetQueueState(ctx context.Context, in *GetQueueState
 	return out, nil
 }
 
-func (c *dbufServiceClient) ReleasePackets(ctx context.Context, in *ReleasePacketsRequest, opts ...grpc.CallOption) (*ReleasePacketsResponse, error) {
-	out := new(ReleasePacketsResponse)
-	err := c.cc.Invoke(ctx, "/dbuf.DbufService/ReleasePackets", in, out, opts...)
+func (c *dbufServiceClient) ModifyQueue(ctx context.Context, in *QueueOperationRequest, opts ...grpc.CallOption) (*QueueOperationResponse, error) {
+	out := new(QueueOperationResponse)
+	err := c.cc.Invoke(ctx, "/dbuf.DbufService/ModifyQueue", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -715,9 +766,9 @@ func (x *dbufServiceSubscribeClient) Recv() (*Notification, error) {
 
 // DbufServiceServer is the server API for DbufService service.
 type DbufServiceServer interface {
-	GetCurrentState(context.Context, *GetCurrentStateRequest) (*GetCurrentStateResponse, error)
+	GetDbufState(context.Context, *GetDbufStateRequest) (*GetDbufStateResponse, error)
 	GetQueueState(context.Context, *GetQueueStateRequest) (*GetQueueStateResponse, error)
-	ReleasePackets(context.Context, *ReleasePacketsRequest) (*ReleasePacketsResponse, error)
+	ModifyQueue(context.Context, *QueueOperationRequest) (*QueueOperationResponse, error)
 	Subscribe(*SubscribeRequest, DbufService_SubscribeServer) error
 }
 
@@ -725,14 +776,14 @@ type DbufServiceServer interface {
 type UnimplementedDbufServiceServer struct {
 }
 
-func (*UnimplementedDbufServiceServer) GetCurrentState(ctx context.Context, req *GetCurrentStateRequest) (*GetCurrentStateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentState not implemented")
+func (*UnimplementedDbufServiceServer) GetDbufState(ctx context.Context, req *GetDbufStateRequest) (*GetDbufStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDbufState not implemented")
 }
 func (*UnimplementedDbufServiceServer) GetQueueState(ctx context.Context, req *GetQueueStateRequest) (*GetQueueStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetQueueState not implemented")
 }
-func (*UnimplementedDbufServiceServer) ReleasePackets(ctx context.Context, req *ReleasePacketsRequest) (*ReleasePacketsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReleasePackets not implemented")
+func (*UnimplementedDbufServiceServer) ModifyQueue(ctx context.Context, req *QueueOperationRequest) (*QueueOperationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ModifyQueue not implemented")
 }
 func (*UnimplementedDbufServiceServer) Subscribe(req *SubscribeRequest, srv DbufService_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
@@ -742,20 +793,20 @@ func RegisterDbufServiceServer(s *grpc.Server, srv DbufServiceServer) {
 	s.RegisterService(&_DbufService_serviceDesc, srv)
 }
 
-func _DbufService_GetCurrentState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCurrentStateRequest)
+func _DbufService_GetDbufState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDbufStateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DbufServiceServer).GetCurrentState(ctx, in)
+		return srv.(DbufServiceServer).GetDbufState(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dbuf.DbufService/GetCurrentState",
+		FullMethod: "/dbuf.DbufService/GetDbufState",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DbufServiceServer).GetCurrentState(ctx, req.(*GetCurrentStateRequest))
+		return srv.(DbufServiceServer).GetDbufState(ctx, req.(*GetDbufStateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -778,20 +829,20 @@ func _DbufService_GetQueueState_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DbufService_ReleasePackets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleasePacketsRequest)
+func _DbufService_ModifyQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueueOperationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DbufServiceServer).ReleasePackets(ctx, in)
+		return srv.(DbufServiceServer).ModifyQueue(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dbuf.DbufService/ReleasePackets",
+		FullMethod: "/dbuf.DbufService/ModifyQueue",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DbufServiceServer).ReleasePackets(ctx, req.(*ReleasePacketsRequest))
+		return srv.(DbufServiceServer).ModifyQueue(ctx, req.(*QueueOperationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -822,16 +873,16 @@ var _DbufService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*DbufServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetCurrentState",
-			Handler:    _DbufService_GetCurrentState_Handler,
+			MethodName: "GetDbufState",
+			Handler:    _DbufService_GetDbufState_Handler,
 		},
 		{
 			MethodName: "GetQueueState",
 			Handler:    _DbufService_GetQueueState_Handler,
 		},
 		{
-			MethodName: "ReleasePackets",
-			Handler:    _DbufService_ReleasePackets_Handler,
+			MethodName: "ModifyQueue",
+			Handler:    _DbufService_ModifyQueue_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

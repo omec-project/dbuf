@@ -5,19 +5,20 @@ option go_package = "github.com/omec-project/dbuf";
 package dbuf;
 
 service DbufService {
-  rpc GetCurrentState(GetCurrentStateRequest) returns (GetCurrentStateResponse);
+  rpc GetDbufState(GetDbufStateRequest) returns (GetDbufStateResponse);
   rpc GetQueueState(GetQueueStateRequest) returns (GetQueueStateResponse);
-  rpc ReleasePackets(ReleasePacketsRequest) returns (ReleasePacketsResponse);
+  rpc ModifyQueue(QueueOperationRequest) returns (QueueOperationResponse);
   rpc Subscribe(SubscribeRequest) returns (stream Notification);
 }
 
-message GetCurrentStateRequest {}
+message GetDbufStateRequest {}
 
-message GetCurrentStateResponse {
-  uint64 maximum_buffers = 1;
-  uint64 free_buffers = 2;
-  uint64 maximum_memory = 3;
-  uint64 free_memory = 4;
+message GetDbufStateResponse {
+  uint64 queue_id_low = 1;
+  uint64 queue_id_high = 2;
+  uint64 free_queues = 3;
+  uint64 maximum_memory = 4;
+  uint64 free_memory = 5;
 }
 
 message GetQueueStateRequest {
@@ -39,11 +40,17 @@ message GetQueueStateResponse {
   QueuesState state = 5;
 }
 
-message ReleasePacketsRequest {
-  uint64 buffer_id = 1;
+message QueueOperationRequest {
+  enum QueueAction {
+    QUEUE_ACTION_INVALID = 0;
+    QUEUE_ACTION_RELEASE = 1;
+    QUEUE_ACTION_DROP = 2;
+  }
+  QueueAction action = 1;
+  uint64 buffer_id = 2;
 }
 
-message ReleasePacketsResponse {}
+message QueueOperationResponse {}
 
 message SubscribeRequest {}
 

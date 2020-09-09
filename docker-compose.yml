@@ -1,0 +1,13 @@
+version: '3.2'
+services:
+  dbuf:
+    build: .
+    image: dbuf:latest
+    ports:
+      - "10000:10000"
+
+  dbuf-client:
+    build: .
+    command: "dbuf-client -url dbuf:10000 -local_dataplane_url : -remote_dataplane_url dbuf:2152 -demo"
+    depends_on:
+      - dbuf

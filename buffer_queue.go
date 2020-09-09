@@ -1,27 +1,31 @@
 package dbuf
 
 import (
-	"errors"
 	"flag"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"log"
 	"sync"
+	"time"
 )
 
 var (
-	maxQueueIds         = flag.Int("max_queue_ids", 4, "Maximum number of queue IDs")
-	maxPacketQueueSlots = flag.Uint64("max_packet_slots_per_queue", 2, "Maximum number of packet slots in each queue")
-	rxQueueDepth        = flag.Int("rx_queue_depth", 100, "Depth of the rx queue for data plane packets")
+	queueIdLow          = flag.Uint("queue_id_low", 0, "Lowest queue ID to buffer")
+	queueIdHigh         = flag.Uint("queue_id_high", 4, "Highest queue ID to buffer")
+	maxPacketQueueSlots = flag.Uint64(
+		"max_packet_slots_per_queue", 1024, "Maximum number of packet slots in each queue",
+	)
+	rxQueueDepth = flag.Int(
+		"rx_queue_depth", 100, "Depth of the rx queue for data plane packets",
+	)
+	dropTimeout = flag.Duration(
+		"queue_drop_timeout", time.Second*5,
+		"Packets of a queue are dropped when no new packets are received within the timeout.",
+	)
+	rxWorkers = flag.Uint("rx_workers", 1, "Number of rx worker goroutines.")
 )
-
-type State struct {
-	maximumBufferIds int
-	freeBufferIds    int
-	maximumMemory    int
-	freeMemory       int
-	state            GetQueueStateResponse_QueuesState
-}
 
 type bufferPacket struct {
 	udpPacket
@@ -33,39 +37,73 @@ type queue struct {
 	maximumSlots uint64
 	state        GetQueueStateResponse_QueuesState
 	lock         sync.Mutex
+	dropTimer    *time.Timer
+}
+
+func (q *queue) empty() bool {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+	return len(q.packets) == 0
 }
 
 type BufferQueue struct {
 	queues         []queue
 	ch             chan udpPacket
-	dl             *dataPlaneListener
+	di             *dataPlaneInterface
 	subscribers    []chan Notification
 	subscriberLock sync.RWMutex
 }
 
-func NewBufferQueue(dl *dataPlaneListener) *BufferQueue {
+func NewBufferQueue(di *dataPlaneInterface) *BufferQueue {
 	b := &BufferQueue{}
-	b.dl = dl
+	b.di = di
 	b.ch = make(chan udpPacket, *rxQueueDepth)
-	b.queues = make([]queue, *maxQueueIds)
-	for i, _ := range b.queues {
-		b.queues[i].maximumSlots = *maxPacketQueueSlots
-		b.queues[i].state = GetQueueStateResponse_QUEUE_STATE_EMPTY
+	b.queues = make([]queue, *queueIdHigh-*queueIdLow)
+	for i := range b.queues {
+		queueId, err := GetQueueIdFromIndex(i) // Prevent capturing i by reference
+		if err != nil {
+			log.Fatal(err)
+		}
+		q := &b.queues[i]
+		q.lock.Lock()
+		q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
+		q.maximumSlots = *maxPacketQueueSlots
+		q.state = GetQueueStateResponse_QUEUE_STATE_EMPTY
+		q.dropTimer = time.AfterFunc(
+			*dropTimeout, func() {
+				if err := b.ReleasePackets(queueId, true); err != nil {
+					log.Printf("Error droppping packets from queue %v: %v", queueId, err)
+				} else {
+					log.Printf("Dropped queue %v due to timeout.", queueId)
+				}
+			},
+		)
+		q.lock.Unlock()
 	}
 
-	log.Printf("%+v", b)
 	return b
 }
 
-func (b *BufferQueue) Start(d *dataPlaneListener) (err error) {
-	d.SetOutputChannel(b.ch)
-	go b.rxFn()
+func (b *BufferQueue) Start() (err error) {
+	b.di.SetOutputChannel(b.ch)
+	for i := uint(0); i < *rxWorkers; i++ {
+		go b.rxFn()
+	}
 	return
 }
 
 func (b *BufferQueue) Stop() (err error) {
 	close(b.ch)
 	return
+}
+
+func (b *BufferQueue) GetQueue(queueId uint32) (q *queue, err error) {
+	if uint(queueId) < *queueIdLow || uint(queueId) >= *queueIdHigh {
+		return nil, status.Errorf(codes.OutOfRange, "queue id %v is out of range", queueId)
+	}
+	index := int(queueId) - int(*queueIdLow)
+
+	return &b.queues[index], nil
 }
 
 func (b *BufferQueue) RegisterSubscriber(ch chan Notification) (err error) {
@@ -88,24 +126,37 @@ func (b *BufferQueue) UnregisterSubscriber(ch chan Notification) (err error) {
 		}
 	}
 
-	return errors.New("channel not found")
+	return status.Error(codes.NotFound, "channel not found")
 }
 
-func (b BufferQueue) GetState() State {
-	var s State
-	s.maximumBufferIds = len(b.queues)
-	s.freeBufferIds = 0
-	s.maximumMemory = 0
-	s.freeMemory = 0
+func (b *BufferQueue) GetState() (s GetDbufStateResponse) {
+	s.QueueIdLow = uint64(*queueIdLow)
+	s.QueueIdHigh = uint64(*queueIdHigh)
+	s.MaximumMemory = 0
+	s.FreeMemory = 0
+	for i := range b.queues {
+		q := &b.queues[i]
+		if q.empty() {
+			s.FreeQueues += 1
+		}
+	}
+
 	return s
 }
 
-func (b BufferQueue) GetQueueState(queueId uint64) (s GetQueueStateResponse, err error) {
-	if queueId > uint64(len(b.queues)) {
-		err = errors.New("out of range")
+func GetQueueIdFromIndex(idx int) (uint32, error) {
+	queueId := uint(idx) + *queueIdLow
+	if queueId < *queueIdLow || queueId >= *queueIdHigh {
+		return 0, status.Errorf(codes.InvalidArgument, "queue index %v is out of range", idx)
+	}
+	return uint32(queueId), nil
+}
+
+func (b *BufferQueue) GetQueueState(queueId uint64) (s GetQueueStateResponse, err error) {
+	q, err := b.GetQueue(uint32(queueId))
+	if err != nil {
 		return
 	}
-	q := &b.queues[queueId]
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	s.MaximumBuffers = q.maximumSlots
@@ -117,19 +168,34 @@ func (b BufferQueue) GetQueueState(queueId uint64) (s GetQueueStateResponse, err
 }
 
 // TODO: Handle continuous drain state where we keep forwarding new packets
-// Should this function be blocking?
+// Should this function be non-blocking?
 // Do we need an explicit DRAIN state?
-func (b *BufferQueue) ReleasePackets(queueId uint32) error {
-	q := &b.queues[queueId]
+func (b *BufferQueue) ReleasePackets(queueId uint32, drop bool) error {
+	q, err := b.GetQueue(queueId)
+	if err != nil {
+		return err
+	}
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	q.state = GetQueueStateResponse_QUEUE_STATE_DRAINING
-	for i, _ := range q.packets {
-		if err := b.dl.Send(q.packets[i].udpPacket); err != nil {
-			return err
+	for i := range q.packets {
+		if !drop {
+			if err := b.di.Send(q.packets[i].udpPacket); err != nil {
+				return err
+			}
 		}
+		q.packets[i] = bufferPacket{}
+	}
+	if drop {
+		stats.Add(queueDroppedStatKey, int64(len(q.packets)))
+	} else {
+		stats.Add(queueReleasedStatKey, int64(len(q.packets)))
 	}
 	q.packets = q.packets[:0]
+	//q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
+	q.state = GetQueueStateResponse_QUEUE_STATE_EMPTY
+	q.dropTimer.Stop()
+	q.dropTimer.Reset(*dropTimeout)
 
 	return nil
 }
@@ -138,10 +204,9 @@ func (b *BufferQueue) rxFn() {
 	for packet := range b.ch {
 		parsedPacket := gopacket.NewPacket(packet.payload, layers.LayerTypeGTPv1U, gopacket.Default)
 		if gtpLayer := parsedPacket.Layer(layers.LayerTypeGTPv1U); gtpLayer != nil {
-			log.Println("This is a GTP packet!")
 			gtp, _ := gtpLayer.(*layers.GTPv1U)
 			queueId := gtp.TEID
-			log.Printf("Got buffer with id %d\n", queueId)
+			//log.Printf("Got buffer with id %d\n", queueId)
 
 			buf := &bufferPacket{packet, queueId}
 			b.enqueueBuffer(buf)
@@ -184,12 +249,12 @@ func (b *BufferQueue) notifyFirst(queueId uint32) {
 }
 
 func (b *BufferQueue) enqueueBuffer(pkt *bufferPacket) {
-	if pkt.id >= uint32(len(b.queues)) {
-		log.Printf("Droppend packet. Queue Id %v out of range.", pkt.id)
+	q, err := b.GetQueue(pkt.id)
+	if err != nil {
+		log.Printf("Dropped packet. Queue Id %v out of range.", pkt.id)
 		b.notifyDrop(pkt.id)
 		return
 	}
-	q := &b.queues[pkt.id]
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	if uint64(len(q.packets)) < q.maximumSlots {
@@ -197,8 +262,11 @@ func (b *BufferQueue) enqueueBuffer(pkt *bufferPacket) {
 			b.notifyFirst(pkt.id)
 		}
 		q.packets = append(q.packets, *pkt)
+		q.dropTimer.Stop()
+		q.dropTimer.Reset(*dropTimeout)
 	} else {
-		log.Printf("Dropped packet. Queue with id %v is full.", pkt.id)
 		b.notifyDrop(pkt.id)
+		stats.Add(queueFullDropStatKey, 1)
+		log.Printf("Dropped packet. Queue with id %v is full.", pkt.id)
 	}
 }
