@@ -41,11 +41,15 @@ func (s *dbufService) ModifyQueue(
 ) (*QueueOperationResponse, error) {
 	switch req.Action {
 	case QueueOperationRequest_QUEUE_ACTION_RELEASE:
-		if err := s.bq.ReleasePackets(uint32(req.BufferId), false); err != nil {
+		if err := s.bq.ReleasePackets(uint32(req.BufferId), false, false); err != nil {
+			return nil, err
+		}
+	case QueueOperationRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH:
+		if err := s.bq.ReleasePackets(uint32(req.BufferId), false, true); err != nil {
 			return nil, err
 		}
 	case QueueOperationRequest_QUEUE_ACTION_DROP:
-		if err := s.bq.ReleasePackets(uint32(req.BufferId), true); err != nil {
+		if err := s.bq.ReleasePackets(uint32(req.BufferId), true, false); err != nil {
 			return nil, err
 		}
 	default:

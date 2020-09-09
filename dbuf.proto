@@ -28,10 +28,9 @@ message GetQueueStateRequest {
 message GetQueueStateResponse {
   enum QueuesState {
     QUEUE_STATE_INVALID = 0;
-    QUEUE_STATE_EMPTY = 1;
-    QUEUE_STATE_BUFFERING = 2;
-    QUEUE_STATE_DRAINING = 3;
-    QUEUE_STATE_FULL = 4;
+    QUEUE_STATE_BUFFERING = 1;
+    QUEUE_STATE_DRAINING = 2;
+    QUEUE_STATE_PASSTHROUGH = 3;
   }
   uint64 maximum_buffers = 1;
   uint64 free_buffers = 2;
@@ -44,7 +43,8 @@ message QueueOperationRequest {
   enum QueueAction {
     QUEUE_ACTION_INVALID = 0;
     QUEUE_ACTION_RELEASE = 1;
-    QUEUE_ACTION_DROP = 2;
+    QUEUE_ACTION_RELEASE_AND_PASSTHROUGH = 2;
+    QUEUE_ACTION_DROP = 3;
   }
   QueueAction action = 1;
   uint64 buffer_id = 2;

@@ -114,17 +114,38 @@ func (c *dbufClient) Demo() (err error) {
 		return (rand.Uint32() % (maxQueueId - minQueueId)) + minQueueId
 	}
 
-	for i := uint32(s.QueueIdLow); i < 10; i++ {
-		if err = doSendPacket(c.dataplaneConn, i%maxQueueId); err != nil {
+	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+		if err = doSendPacket(c.dataplaneConn, i); err != nil {
 			glog.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 50)
 	}
-	for i := uint32(s.QueueIdLow); i < 10; i++ {
-		if err = c.doReleasePackets(i % maxQueueId); err != nil {
+	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+		if err = c.doModifyQueue(i, dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE); err != nil {
 			glog.Infoln(err)
 		}
 	}
+
+	// Test passthrough mode
+	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+		if err = c.doModifyQueue(
+			i, dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH,
+		); err != nil {
+			glog.Fatal(err)
+		}
+	}
+	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+		if err = doSendPacket(c.dataplaneConn, i); err != nil {
+			glog.Fatal(err)
+		}
+		time.Sleep(time.Millisecond * 50)
+	}
+	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+		if err = c.doModifyQueue(i, dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE); err != nil {
+			glog.Fatal(err)
+		}
+	}
+	time.Sleep(time.Millisecond * 500)
 
 	go func() {
 		for true {
@@ -136,7 +157,9 @@ func (c *dbufClient) Demo() (err error) {
 	}()
 
 	for true {
-		if err = c.doReleasePackets(randomId()); err != nil {
+		if err = c.doModifyQueue(
+			randomId(), dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE,
+		); err != nil {
 			glog.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 200)
@@ -145,16 +168,17 @@ func (c *dbufClient) Demo() (err error) {
 	return
 }
 
-func (c *dbufClient) doReleasePackets(queueId uint32) (err error) {
+func (c *dbufClient) doModifyQueue(
+	queueId uint32, action dbuf.QueueOperationRequest_QueueAction,
+) (err error) {
 	_, err = c.ModifyQueue(
-		context.Background(), &dbuf.QueueOperationRequest{
-			Action: dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE, BufferId: uint64(queueId),
-		},
+		context.Background(),
+		&dbuf.QueueOperationRequest{Action: action, BufferId: uint64(queueId)},
 	)
 	if err != nil {
 		return
 	}
-	glog.Info("Released packets of queue ", queueId)
+	glog.Infof("Modified queue %v to action %v", queueId, action)
 	return
 }
 

@@ -46,6 +46,14 @@ func (q *queue) empty() bool {
 	return len(q.packets) == 0
 }
 
+func (q *queue) unsafeEmpty() bool {
+	return len(q.packets) == 0
+}
+
+func (q *queue) unsafeFull() bool {
+	return uint64(len(q.packets)) == q.maximumSlots
+}
+
 type BufferQueue struct {
 	queues         []queue
 	ch             chan udpPacket
@@ -68,10 +76,10 @@ func NewBufferQueue(di *dataPlaneInterface) *BufferQueue {
 		q.lock.Lock()
 		q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
 		q.maximumSlots = *maxPacketQueueSlots
-		q.state = GetQueueStateResponse_QUEUE_STATE_EMPTY
+		q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
 		q.dropTimer = time.AfterFunc(
 			*dropTimeout, func() {
-				if err := b.ReleasePackets(queueId, true); err != nil {
+				if err := b.ReleasePackets(queueId, true, false); err != nil {
 					log.Printf("Error droppping packets from queue %v: %v", queueId, err)
 				} else {
 					log.Printf("Dropped queue %v due to timeout.", queueId)
@@ -170,7 +178,7 @@ func (b *BufferQueue) GetQueueState(queueId uint64) (s GetQueueStateResponse, er
 // TODO: Handle continuous drain state where we keep forwarding new packets
 // Should this function be non-blocking?
 // Do we need an explicit DRAIN state?
-func (b *BufferQueue) ReleasePackets(queueId uint32, drop bool) error {
+func (b *BufferQueue) ReleasePackets(queueId uint32, drop bool, passthrough bool) error {
 	q, err := b.GetQueue(queueId)
 	if err != nil {
 		return err
@@ -193,7 +201,11 @@ func (b *BufferQueue) ReleasePackets(queueId uint32, drop bool) error {
 	}
 	q.packets = q.packets[:0]
 	//q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
-	q.state = GetQueueStateResponse_QUEUE_STATE_EMPTY
+	if passthrough {
+		q.state = GetQueueStateResponse_QUEUE_STATE_PASSTHROUGH
+	} else {
+		q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
+	}
 	q.dropTimer.Stop()
 	q.dropTimer.Reset(*dropTimeout)
 
@@ -257,8 +269,12 @@ func (b *BufferQueue) enqueueBuffer(pkt *bufferPacket) {
 	}
 	q.lock.Lock()
 	defer q.lock.Unlock()
-	if uint64(len(q.packets)) < q.maximumSlots {
-		if len(q.packets) == 0 {
+	if !q.unsafeFull() {
+		if q.state == GetQueueStateResponse_QUEUE_STATE_PASSTHROUGH {
+			_ = b.di.Send(pkt.udpPacket)
+			return
+		}
+		if q.unsafeEmpty() {
 			b.notifyFirst(pkt.id)
 		}
 		q.packets = append(q.packets, *pkt)
