@@ -45,9 +45,11 @@ message QueueOperationRequest {
     QUEUE_ACTION_RELEASE = 1;
     QUEUE_ACTION_RELEASE_AND_PASSTHROUGH = 2;
     QUEUE_ACTION_DROP = 3;
+    QUEUE_ACTION_RESIZE = 4;
   }
   QueueAction action = 1;
   uint64 buffer_id = 2;
+  uint64 new_queue_size = 3;
 }
 
 message QueueOperationResponse {}

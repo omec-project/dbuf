@@ -23,20 +23,7 @@ var (
 		"data_plane_urls", "0.0.0.0:2152",
 		"Comma-separated list of URLs for server to listen for data plane packets",
 	)
-	stats = expvar.NewMap("counters")
 )
-
-const rxOkStatKey string = "rx_ok"
-const txOkStatKey string = "tx_ok"
-const rxDropStatKey string = "rx_drop"
-const txDropStatKey string = "tx_drop"
-const queueFullDropStatKey string = "queue_full_discarded_packets"
-const queueReleasedStatKey string = "queue_released_packets"
-const queueDroppedStatKey string = "queue_dropped_packets"
-
-func init() {
-	stats.Add(queueFullDropStatKey, 0)
-}
 
 type Dbuf struct {
 	di         *dataPlaneInterface
