@@ -25,9 +25,6 @@ func NewDataPlaneInterface() *dataPlaneInterface {
 }
 
 func (d *dataPlaneInterface) Start(listenUrls string) error {
-	stats.Add(rxDropStatKey, 0)
-	stats.Add(txDropStatKey, 0)
-
 	urls := strings.Split(listenUrls, ",")
 	// TODO: support multiple interfaces/urls
 	//for _, url := range urls {
@@ -61,11 +58,10 @@ func (d *dataPlaneInterface) Send(packet udpPacket) (err error) {
 	}
 	_, err = d.udpConn.WriteToUDP(packet.payload, &packet.remoteAddress)
 	if err != nil {
-		stats.Add(txDropStatKey, 1)
+		incTxDrop(1)
 		return err
 	}
-	stats.Add(txOkStatKey, 1)
-
+	incTxOk(1)
 	return
 }
 
@@ -85,7 +81,7 @@ func (d *dataPlaneInterface) ReceiveFn() {
 		} else if err != nil {
 			log.Fatalf("%v", err)
 		}
-		stats.Add(rxOkStatKey, 1)
+		incRxOk(1)
 		buf = buf[:n]
 		//log.Printf("Recv %v bytes from %v: %v", n, raddr, buf)
 		//log.Printf("Recv %v bytes from %v", n, raddr)
@@ -95,7 +91,7 @@ func (d *dataPlaneInterface) ReceiveFn() {
 		select {
 		case d.outputChannel <- p:
 		default:
-			stats.Add(rxDropStatKey, 1)
+			incRxDrop(1)
 			log.Println("Dropped packet because channel is full")
 		}
 	}

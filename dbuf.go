@@ -1,13 +1,11 @@
 package dbuf
 
 import (
-	"expvar"
 	_ "expvar"
 	"flag"
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
@@ -42,9 +40,7 @@ func NewDbuf() *Dbuf {
 
 func (dbuf *Dbuf) Run() (err error) {
 	// Start metrics server.
-	go func() {
-		log.Println(http.ListenAndServe("localhost:8080", nil))
-	}()
+	startMetricsServer()
 
 	// Setup signal handler.
 	signal.Notify(dbuf.signals, syscall.SIGINT)

@@ -195,9 +195,9 @@ func (b *BufferQueue) ReleasePackets(queueId uint32, drop bool, passthrough bool
 		q.packets[i] = bufferPacket{}
 	}
 	if drop {
-		stats.Add(queueDroppedStatKey, int64(len(q.packets)))
+		incQueueDrop(int64(len(q.packets)))
 	} else {
-		stats.Add(queueReleasedStatKey, int64(len(q.packets)))
+		incQueueReleased(int64(len(q.packets)))
 	}
 	q.packets = q.packets[:0]
 	//q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
@@ -282,7 +282,7 @@ func (b *BufferQueue) enqueueBuffer(pkt *bufferPacket) {
 		q.dropTimer.Reset(*dropTimeout)
 	} else {
 		b.notifyDrop(pkt.id)
-		stats.Add(queueFullDropStatKey, 1)
+		incQueueFullDrop(1)
 		log.Printf("Dropped packet. Queue with id %v is full.", pkt.id)
 	}
 }
