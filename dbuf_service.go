@@ -37,19 +37,19 @@ func (s *dbufService) GetQueueState(
 }
 
 func (s *dbufService) ModifyQueue(
-	ctx context.Context, req *QueueOperationRequest,
-) (*QueueOperationResponse, error) {
+	ctx context.Context, req *ModifyQueueRequest,
+) (*ModifyQueueResponse, error) {
 	switch req.Action {
-	case QueueOperationRequest_QUEUE_ACTION_RELEASE:
-		if err := s.bq.ReleasePackets(uint32(req.BufferId), false, false); err != nil {
+	case ModifyQueueRequest_QUEUE_ACTION_RELEASE:
+		if err := s.bq.ReleasePackets(uint32(req.QueueId), false, false); err != nil {
 			return nil, err
 		}
-	case QueueOperationRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH:
-		if err := s.bq.ReleasePackets(uint32(req.BufferId), false, true); err != nil {
+	case ModifyQueueRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH:
+		if err := s.bq.ReleasePackets(uint32(req.QueueId), false, true); err != nil {
 			return nil, err
 		}
-	case QueueOperationRequest_QUEUE_ACTION_DROP:
-		if err := s.bq.ReleasePackets(uint32(req.BufferId), true, false); err != nil {
+	case ModifyQueueRequest_QUEUE_ACTION_DROP:
+		if err := s.bq.ReleasePackets(uint32(req.QueueId), true, false); err != nil {
 			return nil, err
 		}
 	default:
@@ -57,7 +57,7 @@ func (s *dbufService) ModifyQueue(
 			codes.InvalidArgument, "unknown queue operation: %v", req.Action,
 		)
 	}
-	resp := &QueueOperationResponse{}
+	resp := &ModifyQueueResponse{}
 
 	return resp, nil
 }

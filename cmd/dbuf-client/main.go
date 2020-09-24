@@ -121,7 +121,7 @@ func (c *dbufClient) Demo() (err error) {
 		time.Sleep(time.Millisecond * 50)
 	}
 	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
-		if err = c.doModifyQueue(i, dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE); err != nil {
+		if err = c.doModifyQueue(i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE); err != nil {
 			glog.Infoln(err)
 		}
 	}
@@ -129,7 +129,7 @@ func (c *dbufClient) Demo() (err error) {
 	// Test passthrough mode
 	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
 		if err = c.doModifyQueue(
-			i, dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH,
+			i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH,
 		); err != nil {
 			glog.Fatal(err)
 		}
@@ -141,7 +141,7 @@ func (c *dbufClient) Demo() (err error) {
 		time.Sleep(time.Millisecond * 50)
 	}
 	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
-		if err = c.doModifyQueue(i, dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE); err != nil {
+		if err = c.doModifyQueue(i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE); err != nil {
 			glog.Fatal(err)
 		}
 	}
@@ -158,7 +158,7 @@ func (c *dbufClient) Demo() (err error) {
 
 	for true {
 		if err = c.doModifyQueue(
-			randomId(), dbuf.QueueOperationRequest_QUEUE_ACTION_RELEASE,
+			randomId(), dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE,
 		); err != nil {
 			glog.Fatal(err)
 		}
@@ -169,11 +169,11 @@ func (c *dbufClient) Demo() (err error) {
 }
 
 func (c *dbufClient) doModifyQueue(
-	queueId uint32, action dbuf.QueueOperationRequest_QueueAction,
+	queueId uint32, action dbuf.ModifyQueueRequest_QueueAction,
 ) (err error) {
 	_, err = c.ModifyQueue(
 		context.Background(),
-		&dbuf.QueueOperationRequest{Action: action, BufferId: uint64(queueId)},
+		&dbuf.ModifyQueueRequest{Action: action, QueueId: uint64(queueId)},
 	)
 	if err != nil {
 		return
@@ -273,7 +273,7 @@ func main() {
 		glog.Info(state)
 	} else if *releasePackets > 0 {
 		_, err := client.ModifyQueue(
-			context.Background(), &dbuf.QueueOperationRequest{BufferId: *releasePackets},
+			context.Background(), &dbuf.ModifyQueueRequest{QueueId: *releasePackets},
 		)
 		if err != nil {
 			glog.Fatalln("ReleasePackets error: ", err)

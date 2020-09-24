@@ -7,7 +7,7 @@ package dbuf;
 service DbufService {
   rpc GetDbufState(GetDbufStateRequest) returns (GetDbufStateResponse);
   rpc GetQueueState(GetQueueStateRequest) returns (GetQueueStateResponse);
-  rpc ModifyQueue(QueueOperationRequest) returns (QueueOperationResponse);
+  rpc ModifyQueue(ModifyQueueRequest) returns (ModifyQueueResponse);
   rpc Subscribe(SubscribeRequest) returns (stream Notification);
 }
 
@@ -39,7 +39,7 @@ message GetQueueStateResponse {
   QueuesState state = 5;
 }
 
-message QueueOperationRequest {
+message ModifyQueueRequest {
   enum QueueAction {
     QUEUE_ACTION_INVALID = 0;
     QUEUE_ACTION_RELEASE = 1;
@@ -48,11 +48,11 @@ message QueueOperationRequest {
     QUEUE_ACTION_RESIZE = 4;
   }
   QueueAction action = 1;
-  uint64 buffer_id = 2;
+  uint64 queue_id = 2;
   uint64 new_queue_size = 3;
 }
 
-message QueueOperationResponse {}
+message ModifyQueueResponse {}
 
 message SubscribeRequest {}
 
