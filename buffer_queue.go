@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
+	"net"
 	"sync"
 	"time"
 )
@@ -80,7 +81,7 @@ func NewBufferQueue(di *dataPlaneInterface) *BufferQueue {
 		q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
 		q.dropTimer = time.AfterFunc(
 			*dropTimeout, func() {
-				if err := b.ReleasePackets(queueId, true, false); err != nil {
+				if err := b.ReleasePackets(queueId, nil, true, false); err != nil {
 					log.Printf("Error droppping packets from queue %v: %v", queueId, err)
 				} else {
 					log.Printf("Dropped queue %v due to timeout.", queueId)
@@ -179,7 +180,7 @@ func (b *BufferQueue) GetQueueState(queueId uint64) (s GetQueueStateResponse, er
 // TODO: Handle continuous drain state where we keep forwarding new packets
 // Should this function be non-blocking?
 // Do we need an explicit DRAIN state?
-func (b *BufferQueue) ReleasePackets(queueId uint32, drop bool, passthrough bool) error {
+func (b *BufferQueue) ReleasePackets(queueId uint32, dst *net.UDPAddr, drop bool, passthrough bool) error {
 	q, err := b.GetQueue(queueId)
 	if err != nil {
 		return err
@@ -189,6 +190,7 @@ func (b *BufferQueue) ReleasePackets(queueId uint32, drop bool, passthrough bool
 	q.state = GetQueueStateResponse_QUEUE_STATE_DRAINING
 	for i := range q.packets {
 		if !drop {
+			q.packets[i].udpPacket.remoteAddress = *dst
 			if err := b.di.Send(q.packets[i].udpPacket); err != nil {
 				return err
 			}

@@ -5,6 +5,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
+	"net"
 )
 
 type dbufService struct {
@@ -39,17 +40,25 @@ func (s *dbufService) GetQueueState(
 func (s *dbufService) ModifyQueue(
 	ctx context.Context, req *ModifyQueueRequest,
 ) (*ModifyQueueResponse, error) {
+	dst, err := net.ResolveUDPAddr("udp4", req.DestinationAddress)
+	if err != nil {
+		return nil, status.Errorf(
+			codes.InvalidArgument, "IP %v could not be parsed as an UDP4 address",
+			req.DestinationAddress,
+		)
+	}
+
 	switch req.Action {
 	case ModifyQueueRequest_QUEUE_ACTION_RELEASE:
-		if err := s.bq.ReleasePackets(uint32(req.QueueId), false, false); err != nil {
+		if err := s.bq.ReleasePackets(uint32(req.QueueId), dst, false, false); err != nil {
 			return nil, err
 		}
 	case ModifyQueueRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH:
-		if err := s.bq.ReleasePackets(uint32(req.QueueId), false, true); err != nil {
+		if err := s.bq.ReleasePackets(uint32(req.QueueId), dst, false, true); err != nil {
 			return nil, err
 		}
 	case ModifyQueueRequest_QUEUE_ACTION_DROP:
-		if err := s.bq.ReleasePackets(uint32(req.QueueId), true, false); err != nil {
+		if err := s.bq.ReleasePackets(uint32(req.QueueId), dst, true, false); err != nil {
 			return nil, err
 		}
 	default:

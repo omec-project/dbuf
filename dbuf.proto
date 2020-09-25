@@ -51,6 +51,7 @@ message ModifyQueueRequest {
   QueueAction action = 1;
   uint64 queue_id = 2;
   uint64 new_queue_size = 3;
+  string destination_address = 4;
 }
 
 message ModifyQueueResponse {}
