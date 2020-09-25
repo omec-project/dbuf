@@ -2,7 +2,7 @@ version: '3.2'
 services:
   dbuf:
     build: .
-    image: dbuf:latest
+    image: registry.aetherproject.org/tost/dbuf:latest
     ports:
       - "10000:10000"
 
