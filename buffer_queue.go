@@ -1,6 +1,7 @@
 package dbuf
 
 import (
+	"encoding/binary"
 	"flag"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -216,14 +217,18 @@ func (b *BufferQueue) rxFn() {
 	for packet := range b.ch {
 		parsedPacket := gopacket.NewPacket(packet.payload, layers.LayerTypeGTPv1U, gopacket.Default)
 		if gtpLayer := parsedPacket.Layer(layers.LayerTypeGTPv1U); gtpLayer != nil {
-			gtp, _ := gtpLayer.(*layers.GTPv1U)
-			queueId := gtp.TEID
-			//log.Printf("Got buffer with id %d\n", queueId)
-
-			buf := &bufferPacket{packet, queueId}
-			b.enqueueBuffer(buf)
+			if ipv4Layer := parsedPacket.Layer(layers.LayerTypeIPv4); ipv4Layer != nil {
+				ipv4, _ := ipv4Layer.(*layers.IPv4)
+				dst := ipv4.DstIP.To4()
+				queueId := binary.BigEndian.Uint32(dst)
+				buf := &bufferPacket{packet, queueId}
+				b.enqueueBuffer(buf)
+			} else {
+				log.Printf("Could not parse packet as IPv4: %v", packet)
+			}
 		} else {
 			log.Printf("Could not parse packet as GTP: %v", packet)
+			// TODO(max): add counter here and above
 		}
 	}
 }

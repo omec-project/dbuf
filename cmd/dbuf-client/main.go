@@ -211,6 +211,8 @@ func doSendPacket(conn *net.UDPConn, queueId uint32) (err error) {
 	payload := make([]byte, 8)
 	binary.BigEndian.PutUint64(payload, dataplanePayloadCounter)
 	dataplanePayloadCounter++
+	dstIp := make([]byte, 4)
+	binary.BigEndian.PutUint32(dstIp, queueId)
 	buf := gopacket.NewSerializeBuffer()
 	opts := gopacket.SerializeOptions{}
 	err = gopacket.SerializeLayers(
@@ -219,8 +221,23 @@ func doSendPacket(conn *net.UDPConn, queueId uint32) (err error) {
 			Version:       1,
 			ProtocolType:  1,
 			MessageType:   255,
-			MessageLength: uint16(len(payload)),
+			MessageLength: 20 + 8 + uint16(len(payload)),
 			TEID:          queueId,
+		},
+		&layers.IPv4{
+			Version:  4,
+			IHL:      5,
+			Protocol: layers.IPProtocolUDP,
+			Length:   20 + 8 + uint16(len(payload)),
+			TTL:      64,
+			SrcIP:    net.IP{10, 0, 0, 1},
+			DstIP:    dstIp,
+		},
+		&layers.UDP{
+			SrcPort:  0,
+			DstPort:  0,
+			Length:   8 + uint16(len(payload)),
+			Checksum: 0,
 		},
 		gopacket.Payload(payload),
 	)
