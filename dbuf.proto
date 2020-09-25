@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 option go_package = "github.com/omec-project/dbuf";
+option java_package = "org.omecproject.dbuf.grpc";
 
 package dbuf;
 
