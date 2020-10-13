@@ -8,10 +8,11 @@ go run cmd/dbuf/main.go
 ```
 
 TODOs:
- - Expose dataplane addresses over gRPC 
+ - Maybe introduce a release delay to prevent overloading downstream
+ - Use strings for IP addresses when possible, e.g. ModifyQueue message, notifications
+ - Expose dataplane addresses over gRPC
  - Expose queue stats in json and prometheus
- - Queue release request specifies the dest address
- - Decide if ReleasePackets should be blocking until drained and if it should lock the queue the whole time (blocking new packets) 
+ - Decide if ReleasePackets should be blocking until drained and if it should lock the queue the whole time (blocking new packets)
  - Export monitoring statistics
     - Linux interface drop counter
     - Used / free buffers, queues, memory

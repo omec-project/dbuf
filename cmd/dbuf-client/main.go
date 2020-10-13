@@ -108,39 +108,39 @@ func (c *dbufClient) Demo() (err error) {
 		glog.Fatal(err)
 	}
 	glog.Info(s)
-	maxQueueId := uint32(s.QueueIdHigh)
-	minQueueId := uint32(s.QueueIdLow)
+	minQueueId := uint32(1)
+	maxQueueId := uint32(s.MaximumQueues + 1)
 	randomId := func() uint32 {
 		return (rand.Uint32() % (maxQueueId - minQueueId)) + minQueueId
 	}
 
-	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+	for i := minQueueId; i < maxQueueId; i++ {
 		if err = doSendPacket(c.dataplaneConn, i); err != nil {
 			glog.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 50)
 	}
-	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+	for i := minQueueId; i < maxQueueId; i++ {
 		if err = c.doModifyQueue(i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE); err != nil {
 			glog.Infoln(err)
 		}
 	}
 
 	// Test passthrough mode
-	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+	for i := minQueueId; i < maxQueueId; i++ {
 		if err = c.doModifyQueue(
 			i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH,
 		); err != nil {
 			glog.Fatal(err)
 		}
 	}
-	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+	for i := minQueueId; i < maxQueueId; i++ {
 		if err = doSendPacket(c.dataplaneConn, i); err != nil {
 			glog.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 50)
 	}
-	for i := uint32(s.QueueIdLow); i < maxQueueId; i++ {
+	for i := minQueueId; i < maxQueueId; i++ {
 		if err = c.doModifyQueue(i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE); err != nil {
 			glog.Fatal(err)
 		}
@@ -224,7 +224,6 @@ func doSendPacket(conn *net.UDPConn, queueId uint32) (err error) {
 			ProtocolType:  1,
 			MessageType:   255,
 			MessageLength: 20 + 8 + uint16(len(payload)),
-			TEID:          queueId,
 		},
 		&layers.IPv4{
 			Version:  4,

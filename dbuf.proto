@@ -15,9 +15,9 @@ service DbufService {
 message GetDbufStateRequest {}
 
 message GetDbufStateResponse {
-  uint64 queue_id_low = 1;
-  uint64 queue_id_high = 2;
-  uint64 free_queues = 3;
+  uint64 maximum_queues = 1;
+  uint64 allocated_queues = 2;
+  uint64 empty_queues = 3;
   uint64 maximum_memory = 4;
   uint64 free_memory = 5;
 }
