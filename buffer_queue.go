@@ -41,6 +41,21 @@ type queue struct {
 	dropTimer    *time.Timer
 }
 
+// Testing only
+func NewQueue() *queue {
+	q := &queue{}
+	q.lock.Lock()
+	q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
+	q.maximumSlots = *maxPacketQueueSlots
+	q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
+	q.dropTimer = time.AfterFunc(
+		time.Second*0, func() {},
+	)
+	q.lock.Unlock()
+
+	return q
+}
+
 func (q *queue) empty() bool {
 	q.lock.Lock()
 	defer q.lock.Unlock()

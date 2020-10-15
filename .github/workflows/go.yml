@@ -31,3 +31,13 @@ jobs:
 
     - name: Test
       run: go test -v .
+
+    - name: Coverage
+      run: |
+        go test -v -cover -race -coverprofile=coverage.txt -covermode=atomic
+        go tool cover -html=coverage.txt -o coverage.html
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: coverage-report
+        path: coverage.html
