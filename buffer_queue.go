@@ -39,18 +39,17 @@ type queue struct {
 	state        GetQueueStateResponse_QueuesState
 	lock         sync.Mutex
 	dropTimer    *time.Timer
+	dropTimeout  time.Duration
 }
 
-// Testing only
-func NewQueue() *queue {
+func NewQueue(maxSlots uint64, timer *time.Timer, dropTimeout time.Duration) *queue {
 	q := &queue{}
 	q.lock.Lock()
-	q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
-	q.maximumSlots = *maxPacketQueueSlots
+	q.packets = make([]bufferPacket, 0, maxSlots)
+	q.maximumSlots = maxSlots
 	q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
-	q.dropTimer = time.AfterFunc(
-		time.Second*0, func() {},
-	)
+	q.dropTimer = timer
+	q.dropTimeout = dropTimeout
 	q.lock.Unlock()
 
 	return q
@@ -59,7 +58,7 @@ func NewQueue() *queue {
 func (q *queue) empty() bool {
 	q.lock.Lock()
 	defer q.lock.Unlock()
-	return len(q.packets) == 0
+	return q.unsafeEmpty()
 }
 
 func (q *queue) unsafeEmpty() bool {
@@ -68,6 +67,45 @@ func (q *queue) unsafeEmpty() bool {
 
 func (q *queue) unsafeFull() bool {
 	return uint64(len(q.packets)) == q.maximumSlots
+}
+
+func (q *queue) unsafeEnsureInvariants() {
+	if uint64(len(q.packets)) > q.maximumSlots {
+		log.Fatalf(
+			"queue invariant violated: len(q.packets) > q.maximumSlots, %v > %v\n",
+			len(q.packets), q.maximumSlots,
+		)
+	}
+	if len(q.packets) > 0 && q.state == GetQueueStateResponse_QUEUE_STATE_PASSTHROUGH {
+		log.Fatal("queue invariant violated: has packets but is in PASSTHROUGH mode")
+	}
+}
+
+func (q *queue) enqueuePacket(pkt *bufferPacket) error {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+
+	if q.unsafeFull() {
+		return status.Errorf(codes.ResourceExhausted, "queue is full")
+	}
+	if q.state == GetQueueStateResponse_QUEUE_STATE_PASSTHROUGH {
+		return status.Errorf(codes.FailedPrecondition, "queue is in PASSTHROUGH mode")
+	}
+
+	q.packets = append(q.packets, *pkt)
+	q.dropTimer.Stop()
+	q.dropTimer.Reset(q.dropTimeout)
+
+	return nil
+}
+
+func (q *queue) clear() {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+	q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
+	q.packets = q.packets[:0]
+	q.dropTimer.Stop()
+	q.dropTimer.Reset(q.dropTimeout)
 }
 
 type BufferQueue struct {
@@ -127,21 +165,14 @@ func (b *BufferQueue) AllocateQueue(queueId uint32) (q *queue, err error) {
 			codes.ResourceExhausted, "maximum number of queues already allocated",
 		)
 	}
-	q = &queue{}
-	q.lock.Lock()
-	q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
-	q.maximumSlots = *maxPacketQueueSlots
-	q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
-	q.dropTimer = time.AfterFunc(
+	q = NewQueue(*maxPacketQueueSlots, time.AfterFunc(
 		*dropTimeout, func() {
 			if err := b.ReleasePackets(queueId, nil, true, false); err != nil {
 				log.Printf("Error droppping packets from queue %v: %v", queueId, err)
 			} else {
 				log.Printf("Dropped queue %v due to timeout.", queueId)
 			}
-		},
-	)
-	q.lock.Unlock()
+		}), *dropTimeout)
 	b.queueLock.Lock()
 	b.queues[queueId] = q
 	b.queueLock.Unlock()
