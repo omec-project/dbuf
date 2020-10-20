@@ -91,6 +91,8 @@ func (dbuf *Dbuf) HandleSignals() {
 			return
 		}
 		log.Printf("Got signal %v", sig)
-		dbuf.Stop()
+		if err := dbuf.Stop(); err != nil {
+			log.Fatal("Error stopping dbuf:", err)
+		}
 	}
 }
