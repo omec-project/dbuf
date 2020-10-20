@@ -108,6 +108,18 @@ func (q *queue) clear() {
 	q.dropTimer.Reset(q.dropTimeout)
 }
 
+type BufferQueueInterface interface {
+	Start() error
+	Stop() error
+	RegisterSubscriber(chan Notification) error
+	UnregisterSubscriber(chan Notification) error
+	GetState() GetDbufStateResponse
+	GetQueueState(uint64) (GetQueueStateResponse, error)
+	ReleasePackets(
+		queueId uint32, dst *net.UDPAddr, drop bool, passthrough bool,
+	) error
+}
+
 type BufferQueue struct {
 	queues         map[uint32]*queue
 	ch             chan udpPacket
