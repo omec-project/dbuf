@@ -72,6 +72,9 @@ func (d *dataPlaneInterface) SetOutputChannel(ch chan udpPacket) {
 func (d *dataPlaneInterface) ReceiveFn() {
 	for true {
 		buf := make([]byte, 2048)
+		if err := d.udpConn.SetReadDeadline(time.Now().Add(time.Second * 1)); err != nil {
+			return
+		}
 		n, raddr, err := d.udpConn.ReadFromUDP(buf)
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			continue
