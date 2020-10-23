@@ -213,7 +213,7 @@ func doSendPacket(conn *net.UDPConn, queueId uint32) (err error) {
 	payload := make([]byte, 8)
 	binary.BigEndian.PutUint64(payload, dataplanePayloadCounter)
 	dataplanePayloadCounter++
-	dstIp := make([]byte, 4)
+	dstIp := make(net.IP, net.IPv4len)
 	binary.BigEndian.PutUint32(dstIp, queueId)
 	buf := gopacket.NewSerializeBuffer()
 	opts := gopacket.SerializeOptions{}

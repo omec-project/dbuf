@@ -15,6 +15,13 @@ type udpPacket struct {
 	remoteAddress net.UDPAddr
 }
 
+type DataPlaneInterfaceInterface interface {
+	Start(string) error
+	Stop()
+	SetOutputChannel(chan udpPacket)
+	Send(udpPacket) error
+}
+
 type dataPlaneInterface struct {
 	outputChannel chan udpPacket
 	udpConn       *net.UDPConn

@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	maxQueues           = flag.Uint("max_queues", 4, "Maximum number of queues to allocate")
+	maxQueues           = flag.Uint64("max_queues", 4, "Maximum number of queues to allocate")
 	maxPacketQueueSlots = flag.Uint64(
 		"max_packet_slots_per_queue", 1024, "Maximum number of packet slots in each queue",
 	)
@@ -121,20 +121,22 @@ type BufferQueueInterface interface {
 }
 
 type BufferQueue struct {
+	maxQueues      uint64
 	queues         map[uint32]*queue
 	ch             chan udpPacket
-	di             *dataPlaneInterface
+	di             DataPlaneInterfaceInterface
 	queueLock      sync.RWMutex
 	subscribers    []chan Notification
 	subscriberLock sync.RWMutex
 }
 
-func NewBufferQueue(di *dataPlaneInterface) *BufferQueue {
+func NewBufferQueue(di DataPlaneInterfaceInterface, numMaxQueues uint64) *BufferQueue {
 	b := &BufferQueue{}
+	b.maxQueues = numMaxQueues
 	b.di = di
 	b.ch = make(chan udpPacket, *rxQueueDepth)
 	b.queueLock.Lock()
-	b.queues = make(map[uint32]*queue, *maxQueues)
+	b.queues = make(map[uint32]*queue, numMaxQueues)
 	b.queueLock.Unlock()
 
 	return b
@@ -163,16 +165,16 @@ func (b *BufferQueue) GetQueue(queueId uint32) (q *queue, err error) {
 	return q, nil
 }
 
-func (b *BufferQueue) AllocateQueue(queueId uint32) (q *queue, err error) {
+func (b *BufferQueue) allocateQueue(queueId uint32) (q *queue, err error) {
 	q, err = b.GetQueue(queueId)
 	if status.Code(err) != codes.NotFound {
 		return nil, status.Errorf(codes.AlreadyExists, "queue with id %v already exists", queueId)
 	}
 	err = nil
 	b.queueLock.RLock()
-	numQueues := uint(len(b.queues))
+	numQueues := uint64(len(b.queues))
 	b.queueLock.RUnlock()
-	if numQueues >= *maxQueues {
+	if numQueues >= b.maxQueues {
 		return nil, status.Errorf(
 			codes.ResourceExhausted, "maximum number of queues already allocated",
 		)
@@ -193,7 +195,7 @@ func (b *BufferQueue) AllocateQueue(queueId uint32) (q *queue, err error) {
 }
 
 // TODO(max): Trigger from a timer or similar
-func (b *BufferQueue) FreeQueue(queueId uint32) (err error) {
+func (b *BufferQueue) freeQueue(queueId uint32) (err error) {
 	_, err = b.GetQueue(queueId)
 	if err != nil {
 		return
@@ -206,12 +208,10 @@ func (b *BufferQueue) FreeQueue(queueId uint32) (err error) {
 	return
 }
 
-func (b *BufferQueue) GetOrAllocateQueue(queueId uint32) (q *queue, err error) {
+func (b *BufferQueue) getOrAllocateQueue(queueId uint32) (q *queue, err error) {
 	q, err = b.GetQueue(queueId)
 	if status.Code(err) == codes.NotFound {
-		return b.AllocateQueue(queueId)
-	} else if err != nil {
-		return
+		return b.allocateQueue(queueId)
 	}
 	return
 }
@@ -242,7 +242,7 @@ func (b *BufferQueue) UnregisterSubscriber(ch chan Notification) (err error) {
 func (b *BufferQueue) GetState() (s GetDbufStateResponse) {
 	b.queueLock.RLock()
 	defer b.queueLock.RUnlock()
-	s.MaximumQueues = uint64(*maxQueues)
+	s.MaximumQueues = uint64(b.maxQueues)
 	s.AllocatedQueues = uint64(len(b.queues))
 	for _, q := range b.queues {
 		if q.empty() {
@@ -363,7 +363,7 @@ func (b *BufferQueue) notifyFirst(queueId uint32) {
 }
 
 func (b *BufferQueue) enqueueBuffer(pkt *bufferPacket) {
-	q, err := b.GetOrAllocateQueue(pkt.id)
+	q, err := b.getOrAllocateQueue(pkt.id)
 	if err != nil {
 		log.Printf("Dropped packet. No resources for queue %v.", pkt.id)
 		b.notifyDrop(pkt.id)
