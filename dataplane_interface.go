@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -14,9 +15,17 @@ type udpPacket struct {
 	remoteAddress net.UDPAddr
 }
 
+type DataPlaneInterfaceInterface interface {
+	Start(string) error
+	Stop()
+	SetOutputChannel(chan udpPacket)
+	Send(udpPacket) error
+}
+
 type dataPlaneInterface struct {
 	outputChannel chan udpPacket
 	udpConn       *net.UDPConn
+	channelLock   sync.RWMutex // TODO(max): embed directly?
 }
 
 func NewDataPlaneInterface() *dataPlaneInterface {
@@ -40,7 +49,7 @@ func (d *dataPlaneInterface) Start(listenUrls string) error {
 		return err
 	}
 
-	go d.ReceiveFn()
+	go d.receiveFn()
 
 	return nil
 }
@@ -66,10 +75,12 @@ func (d *dataPlaneInterface) Send(packet udpPacket) (err error) {
 }
 
 func (d *dataPlaneInterface) SetOutputChannel(ch chan udpPacket) {
+	d.channelLock.Lock()
+	defer d.channelLock.Unlock()
 	d.outputChannel = ch
 }
 
-func (d *dataPlaneInterface) ReceiveFn() {
+func (d *dataPlaneInterface) receiveFn() {
 	for true {
 		buf := make([]byte, 2048)
 		if err := d.udpConn.SetReadDeadline(time.Now().Add(time.Second * 1)); err != nil {
@@ -91,11 +102,13 @@ func (d *dataPlaneInterface) ReceiveFn() {
 		p := udpPacket{
 			payload: buf, remoteAddress: *raddr,
 		}
+		d.channelLock.RLock()
 		select {
 		case d.outputChannel <- p:
 		default:
 			incRxDrop(1)
 			log.Println("Dropped packet because channel is full")
 		}
+		d.channelLock.RUnlock()
 	}
 }

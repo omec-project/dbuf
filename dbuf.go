@@ -33,7 +33,7 @@ type Dbuf struct {
 func NewDbuf() *Dbuf {
 	d := &Dbuf{}
 	d.di = NewDataPlaneInterface()
-	d.bq = NewBufferQueue(d.di)
+	d.bq = NewBufferQueue(d.di, *maxQueues)
 	d.signals = make(chan os.Signal, 1)
 	return d
 }
