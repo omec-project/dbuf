@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/proto"
+	. "github.com/omec-project/dbuf/api"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

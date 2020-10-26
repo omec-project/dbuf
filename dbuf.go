@@ -3,6 +3,7 @@ package dbuf
 import (
 	_ "expvar"
 	"flag"
+	. "github.com/omec-project/dbuf/api"
 	"google.golang.org/grpc"
 	"log"
 	"net"

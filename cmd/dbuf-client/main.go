@@ -8,7 +8,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
-	"github.com/omec-project/dbuf"
+	dbuf "github.com/omec-project/dbuf/api"
 	"google.golang.org/grpc"
 	"io"
 	"math/rand"

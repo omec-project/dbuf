@@ -5,6 +5,7 @@ import (
 	"flag"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
+	. "github.com/omec-project/dbuf/api"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
