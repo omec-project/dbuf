@@ -87,7 +87,7 @@ func TestBufferQueue(t *testing.T) {
 		udpOutputChannel = ch
 		return nil
 	})
-	bq := NewBufferQueue(mockDi, numMaxQueues)
+	bq := NewQueueManager(mockDi, numMaxQueues)
 	if err := bq.Start(); err != nil {
 		t.Fatal("failed to start", err)
 	}
@@ -129,7 +129,7 @@ func TestBufferQueue(t *testing.T) {
 	})
 
 	t.Run("GetOrAllocateQueueSuccess", func(t *testing.T) {
-		bq := NewBufferQueue(mockDi, numMaxQueues)
+		bq := NewQueueManager(mockDi, numMaxQueues)
 		if _, err := bq.getOrAllocateQueue(queueId1); err != nil {
 			t.Fatal("getOrAllocateQueue failed for existing queue:", err)
 		}
@@ -146,7 +146,7 @@ func TestBufferQueue(t *testing.T) {
 	})
 
 	t.Run("AllocateQueueMaxLimitFail", func(t *testing.T) {
-		bq := NewBufferQueue(mockDi, numMaxQueues)
+		bq := NewQueueManager(mockDi, numMaxQueues)
 		for i := uint32(0); uint64(i) < numMaxQueues; i++ {
 			if _, err := bq.allocateQueue(i); err != nil {
 				t.Fatal("allocateQueue failed:", err)

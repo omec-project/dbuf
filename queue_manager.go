@@ -109,7 +109,7 @@ func (q *queue) clear() {
 	q.dropTimer.Reset(q.dropTimeout)
 }
 
-type BufferQueueInterface interface {
+type QueueManagerInterface interface {
 	Start() error
 	Stop() error
 	RegisterSubscriber(chan Notification) error
@@ -121,7 +121,7 @@ type BufferQueueInterface interface {
 	) error
 }
 
-type BufferQueue struct {
+type QueueManager struct {
 	maxQueues      uint64
 	queues         map[uint32]*queue
 	ch             chan udpPacket
@@ -131,8 +131,8 @@ type BufferQueue struct {
 	subscriberLock sync.RWMutex
 }
 
-func NewBufferQueue(di DataPlaneInterfaceInterface, numMaxQueues uint64) *BufferQueue {
-	b := &BufferQueue{}
+func NewQueueManager(di DataPlaneInterfaceInterface, numMaxQueues uint64) *QueueManager {
+	b := &QueueManager{}
 	b.maxQueues = numMaxQueues
 	b.di = di
 	b.ch = make(chan udpPacket, *rxQueueDepth)
@@ -143,7 +143,7 @@ func NewBufferQueue(di DataPlaneInterfaceInterface, numMaxQueues uint64) *Buffer
 	return b
 }
 
-func (b *BufferQueue) Start() (err error) {
+func (b *QueueManager) Start() (err error) {
 	b.di.SetOutputChannel(b.ch)
 	for i := uint(0); i < *rxWorkers; i++ {
 		go b.rxFn()
@@ -151,12 +151,12 @@ func (b *BufferQueue) Start() (err error) {
 	return
 }
 
-func (b *BufferQueue) Stop() (err error) {
+func (b *QueueManager) Stop() (err error) {
 	close(b.ch)
 	return
 }
 
-func (b *BufferQueue) GetQueue(queueId uint32) (q *queue, err error) {
+func (b *QueueManager) GetQueue(queueId uint32) (q *queue, err error) {
 	b.queueLock.RLock()
 	q, ok := b.queues[queueId]
 	b.queueLock.RUnlock()
@@ -166,7 +166,7 @@ func (b *BufferQueue) GetQueue(queueId uint32) (q *queue, err error) {
 	return q, nil
 }
 
-func (b *BufferQueue) allocateQueue(queueId uint32) (q *queue, err error) {
+func (b *QueueManager) allocateQueue(queueId uint32) (q *queue, err error) {
 	q, err = b.GetQueue(queueId)
 	if status.Code(err) != codes.NotFound {
 		return nil, status.Errorf(codes.AlreadyExists, "queue with id %v already exists", queueId)
@@ -196,7 +196,7 @@ func (b *BufferQueue) allocateQueue(queueId uint32) (q *queue, err error) {
 }
 
 // TODO(max): Trigger from a timer or similar
-func (b *BufferQueue) freeQueue(queueId uint32) (err error) {
+func (b *QueueManager) freeQueue(queueId uint32) (err error) {
 	_, err = b.GetQueue(queueId)
 	if err != nil {
 		return
@@ -209,7 +209,7 @@ func (b *BufferQueue) freeQueue(queueId uint32) (err error) {
 	return
 }
 
-func (b *BufferQueue) getOrAllocateQueue(queueId uint32) (q *queue, err error) {
+func (b *QueueManager) getOrAllocateQueue(queueId uint32) (q *queue, err error) {
 	q, err = b.GetQueue(queueId)
 	if status.Code(err) == codes.NotFound {
 		return b.allocateQueue(queueId)
@@ -217,7 +217,7 @@ func (b *BufferQueue) getOrAllocateQueue(queueId uint32) (q *queue, err error) {
 	return
 }
 
-func (b *BufferQueue) RegisterSubscriber(ch chan Notification) (err error) {
+func (b *QueueManager) RegisterSubscriber(ch chan Notification) (err error) {
 	b.subscriberLock.Lock()
 	defer b.subscriberLock.Unlock()
 	b.subscribers = append(b.subscribers, ch)
@@ -225,7 +225,7 @@ func (b *BufferQueue) RegisterSubscriber(ch chan Notification) (err error) {
 	return
 }
 
-func (b *BufferQueue) UnregisterSubscriber(ch chan Notification) (err error) {
+func (b *QueueManager) UnregisterSubscriber(ch chan Notification) (err error) {
 	b.subscriberLock.Lock()
 	defer b.subscriberLock.Unlock()
 	for i := range b.subscribers {
@@ -240,7 +240,7 @@ func (b *BufferQueue) UnregisterSubscriber(ch chan Notification) (err error) {
 	return status.Error(codes.NotFound, "channel not found")
 }
 
-func (b *BufferQueue) GetState() (s GetDbufStateResponse) {
+func (b *QueueManager) GetState() (s GetDbufStateResponse) {
 	b.queueLock.RLock()
 	defer b.queueLock.RUnlock()
 	s.MaximumQueues = uint64(b.maxQueues)
@@ -256,7 +256,7 @@ func (b *BufferQueue) GetState() (s GetDbufStateResponse) {
 	return s
 }
 
-func (b *BufferQueue) GetQueueState(queueId uint64) (s GetQueueStateResponse, err error) {
+func (b *QueueManager) GetQueueState(queueId uint64) (s GetQueueStateResponse, err error) {
 	q, err := b.GetQueue(uint32(queueId))
 	if err != nil {
 		return
@@ -274,7 +274,7 @@ func (b *BufferQueue) GetQueueState(queueId uint64) (s GetQueueStateResponse, er
 // TODO: Handle continuous drain state where we keep forwarding new packets
 // Should this function be non-blocking?
 // Do we need an explicit DRAIN state?
-func (b *BufferQueue) ReleasePackets(
+func (b *QueueManager) ReleasePackets(
 	queueId uint32, dst *net.UDPAddr, drop bool, passthrough bool,
 ) error {
 	q, err := b.GetQueue(queueId)
@@ -298,6 +298,7 @@ func (b *BufferQueue) ReleasePackets(
 	} else {
 		incQueueReleased(int64(len(q.packets)))
 	}
+	// q.clear() ?
 	q.packets = q.packets[:0]
 	//q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
 	if passthrough {
@@ -311,7 +312,7 @@ func (b *BufferQueue) ReleasePackets(
 	return nil
 }
 
-func (b *BufferQueue) rxFn() {
+func (b *QueueManager) rxFn() {
 	for packet := range b.ch {
 		parsedPacket := gopacket.NewPacket(packet.payload, layers.LayerTypeGTPv1U, gopacket.Default)
 		if gtpLayer := parsedPacket.Layer(layers.LayerTypeGTPv1U); gtpLayer != nil {
@@ -329,9 +330,10 @@ func (b *BufferQueue) rxFn() {
 			// TODO(max): add counter here and above
 		}
 	}
+	log.Println("receive loop stopped")
 }
 
-func (b *BufferQueue) notifyDrop(queueId uint32) {
+func (b *QueueManager) notifyDrop(queueId uint32) {
 	b.subscriberLock.RLock()
 	defer b.subscriberLock.RUnlock()
 	for _, ch := range b.subscribers {
@@ -347,7 +349,7 @@ func (b *BufferQueue) notifyDrop(queueId uint32) {
 	}
 }
 
-func (b *BufferQueue) notifyFirst(queueId uint32) {
+func (b *QueueManager) notifyFirst(queueId uint32) {
 	b.subscriberLock.RLock()
 	defer b.subscriberLock.RUnlock()
 	for _, ch := range b.subscribers {
@@ -363,7 +365,7 @@ func (b *BufferQueue) notifyFirst(queueId uint32) {
 	}
 }
 
-func (b *BufferQueue) enqueueBuffer(pkt *bufferPacket) {
+func (b *QueueManager) enqueueBuffer(pkt *bufferPacket) {
 	q, err := b.getOrAllocateQueue(pkt.id)
 	if err != nil {
 		log.Printf("Dropped packet. No resources for queue %v.", pkt.id)

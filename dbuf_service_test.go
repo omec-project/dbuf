@@ -23,7 +23,7 @@ const (
 func TestDbufService_GetDbufState(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+	mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 	server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 	defer shutdownGrpcServerOrDie(t, server)
 
@@ -48,7 +48,7 @@ func TestDbufService_GetDbufState(t *testing.T) {
 func TestDbufService_GetQueueState(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+	mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 	server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 	defer shutdownGrpcServerOrDie(t, server)
 
@@ -86,7 +86,7 @@ func assertStatusErrorCode(t *testing.T, s *status.Status, code codes.Code) {
 	}
 }
 
-func setupDbufServiceOrDie(t *testing.T, bq BufferQueueInterface) (server *grpc.Server, client DbufServiceClient) {
+func setupDbufServiceOrDie(t *testing.T, bq QueueManagerInterface) (server *grpc.Server, client DbufServiceClient) {
 	server = grpc.NewServer()
 	RegisterDbufServiceServer(server, newDbufService(bq))
 	lis, err := net.Listen("tcp", "localhost:0")
@@ -115,7 +115,7 @@ func TestDbufService_ModifyQueue(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("ReleaseSuccess", func(t *testing.T) {
-		mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+		mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 		server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 		defer shutdownGrpcServerOrDie(t, server)
 
@@ -132,7 +132,7 @@ func TestDbufService_ModifyQueue(t *testing.T) {
 	})
 
 	t.Run("ReleaseAndPassthroughSuccess", func(t *testing.T) {
-		mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+		mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 		server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 		defer shutdownGrpcServerOrDie(t, server)
 
@@ -149,7 +149,7 @@ func TestDbufService_ModifyQueue(t *testing.T) {
 	})
 
 	t.Run("DropSuccess", func(t *testing.T) {
-		mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+		mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 		server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 		defer shutdownGrpcServerOrDie(t, server)
 
@@ -166,7 +166,7 @@ func TestDbufService_ModifyQueue(t *testing.T) {
 	})
 
 	t.Run("InvalidQueueFail", func(t *testing.T) {
-		mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+		mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 		server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 		defer shutdownGrpcServerOrDie(t, server)
 
@@ -184,7 +184,7 @@ func TestDbufService_ModifyQueue(t *testing.T) {
 	})
 
 	t.Run("InvalidActionFail", func(t *testing.T) {
-		mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+		mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 		server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 		defer shutdownGrpcServerOrDie(t, server)
 
@@ -202,7 +202,7 @@ func TestDbufService_ModifyQueue(t *testing.T) {
 	})
 
 	t.Run("InvalidDestinationFail", func(t *testing.T) {
-		mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+		mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 		server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 		defer shutdownGrpcServerOrDie(t, server)
 
@@ -228,7 +228,7 @@ func TestDbufService_Subscribe(t *testing.T) {
 	defer ctrl.Finish()
 
 	t.Run("SubscribeSuccess", func(t *testing.T) {
-		mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+		mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 		server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 		defer shutdownGrpcServerOrDie(t, server)
 
@@ -271,7 +271,7 @@ func TestDbufService_Subscribe(t *testing.T) {
 
 	// TODO(max): make it work reliably or remove
 	t.Run("SubscribePreReadyCloseFail", func(t *testing.T) {
-		mockBufferQueue := NewMockBufferQueueInterface(ctrl)
+		mockBufferQueue := NewMockQueueManagerInterface(ctrl)
 		server, client := setupDbufServiceOrDie(t, mockBufferQueue)
 		defer shutdownGrpcServerOrDie(t, server)
 

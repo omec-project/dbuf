@@ -11,10 +11,10 @@ import (
 
 type dbufService struct {
 	UnimplementedDbufServiceServer
-	bq BufferQueueInterface
+	bq QueueManagerInterface
 }
 
-func newDbufService(bq BufferQueueInterface) *dbufService {
+func newDbufService(bq QueueManagerInterface) *dbufService {
 	s := &dbufService{}
 	s.bq = bq
 	return s

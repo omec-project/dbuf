@@ -26,7 +26,7 @@ var (
 
 type Dbuf struct {
 	di         *dataPlaneInterface
-	bq         *BufferQueue
+	bq         *QueueManager
 	grpcServer *grpc.Server
 	signals    chan os.Signal
 }
@@ -34,7 +34,7 @@ type Dbuf struct {
 func NewDbuf() *Dbuf {
 	d := &Dbuf{}
 	d.di = NewDataPlaneInterface()
-	d.bq = NewBufferQueue(d.di, *maxQueues)
+	d.bq = NewQueueManager(d.di, *maxQueues)
 	d.signals = make(chan os.Signal, 1)
 	return d
 }
