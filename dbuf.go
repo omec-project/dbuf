@@ -80,6 +80,7 @@ func (dbuf *Dbuf) Run() (err error) {
 
 func (dbuf *Dbuf) Stop() (err error) {
 	dbuf.di.Stop()
+	err = dbuf.bq.Stop()
 	dbuf.grpcServer.Stop()
 	close(dbuf.signals)
 	return
