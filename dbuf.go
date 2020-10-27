@@ -26,7 +26,7 @@ var (
 
 type Dbuf struct {
 	di         *dataPlaneInterface
-	bq         *BufferQueue
+	bq         *QueueManager
 	grpcServer *grpc.Server
 	signals    chan os.Signal
 }
