@@ -6,6 +6,7 @@ package dbuf
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	. "github.com/omec-project/dbuf/api"
 	net "net"
 	reflect "reflect"
 )
