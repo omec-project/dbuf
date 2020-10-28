@@ -24,9 +24,9 @@ var (
 	)
 	dropTimeout = flag.Duration(
 		"queue_drop_timeout", time.Second*5,
-		"Packets of a queue are dropped when no new packets are received within the timeout.",
+		"Packets of a queue are dropped when no new packets are received within the timeout",
 	)
-	rxWorkers = flag.Uint("rx_workers", 1, "Number of rx worker goroutines.")
+	rxWorkers = flag.Uint("rx_workers", 1, "Number of rx worker goroutines")
 )
 
 type bufferPacket struct {
