@@ -1,3 +1,8 @@
+<!--
+Copyright 2020-present Open Networking Foundation
+SPDX-License-Identifier: LicenseRef-ONF-Member-1.0
+-->
+
 # dbuf
 Downlink buffering agent for UP4 architecture
 
