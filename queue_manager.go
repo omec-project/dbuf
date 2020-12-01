@@ -310,7 +310,7 @@ func (b *QueueManager) ReleasePackets(
 		q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
 	}
 	q.dropTimer.Stop()
-	q.dropTimer.Reset(*dropTimeout)
+	q.dropTimer.Reset(q.dropTimeout)
 
 	return nil
 }
@@ -387,7 +387,7 @@ func (b *QueueManager) enqueueBuffer(pkt *bufferPacket) {
 		}
 		q.packets = append(q.packets, *pkt)
 		q.dropTimer.Stop()
-		q.dropTimer.Reset(*dropTimeout)
+		q.dropTimer.Reset(q.dropTimeout)
 	} else {
 		b.notifyDrop(pkt.id)
 		incQueueFullDrop(1)
