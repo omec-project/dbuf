@@ -23,13 +23,14 @@ var (
 		"max_packet_slots_per_queue", 1024, "Maximum number of packet slots in each queue",
 	)
 	rxQueueDepth = flag.Int(
-		"rx_queue_depth", 100, "Depth of the rx queue for data plane packets",
+		"rx_queue_depth", 100, "Depth of the rx queue for data plane packets "+
+			"between the dataplane interface and the queue manager",
 	)
 	dropTimeout = flag.Duration(
 		"queue_drop_timeout", time.Second*5,
 		"Packets of a queue are dropped when no new packets are received within the timeout",
 	)
-	rxWorkers = flag.Uint("rx_workers", 1, "Number of rx worker goroutines")
+	rxWorkers = flag.Uint("rx_workers", 1, "Number of rx worker goroutines handling dataplane packets")
 )
 
 type bufferPacket struct {
