@@ -58,14 +58,14 @@ func (dbuf *Dbuf) Run() (err error) {
 	if err = dbuf.di.Start(*dataPlaneUrls); err != nil {
 		return
 	}
-	log.Printf("Listening for GTP packets on %v", *dataPlaneUrls)
+	log.Infof("Listening for GTP packets on %v", *dataPlaneUrls)
 
 	// Create gRPC service.
 	lis, err := net.Listen("tcp", *externalDbufUrl)
 	if err != nil {
 		return
 	}
-	log.Printf("Listening for gRPC requests on %v", *externalDbufUrl)
+	log.Infof("Listening for gRPC requests on %v", *externalDbufUrl)
 	dbuf.grpcServer = grpc.NewServer()
 	RegisterDbufServiceServer(dbuf.grpcServer, newDbufService(dbuf.bq))
 
@@ -95,7 +95,7 @@ func (dbuf *Dbuf) HandleSignals() {
 		if !ok {
 			return
 		}
-		log.Printf("Got signal %v", sig)
+		log.Debugf("Got signal %v", sig)
 		if err := dbuf.Stop(); err != nil {
 			log.Fatal("Error stopping dbuf:", err)
 		}

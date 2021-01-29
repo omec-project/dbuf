@@ -58,10 +58,10 @@ func (d *dataPlaneInterface) Start(listenUrls string) error {
 }
 
 func (d *dataPlaneInterface) Stop() {
-	log.Println("DataplaneListener stopping")
+	log.Infof("DataplaneListener stopping")
 	d.udpConn.Close()
 
-	log.Println("DataplaneListener stopped")
+	log.Infof("DataplaneListener stopped")
 }
 
 func (d *dataPlaneInterface) Send(packet udpPacket) (err error) {
@@ -93,15 +93,15 @@ func (d *dataPlaneInterface) receiveFn() {
 		if errors.Is(err, os.ErrDeadlineExceeded) {
 			continue
 		} else if err != nil && strings.Contains(err.Error(), "use of closed network connection") {
-			log.Println("Listen conn closed")
+			log.Debugln("Listen conn closed")
 			break
 		} else if err != nil {
 			log.Fatalf("%v", err)
 		}
 		incRxOk(1)
 		buf = buf[:n]
-		//log.Printf("Recv %v bytes from %v: %v", n, raddr, buf)
-		//log.Printf("Recv %v bytes from %v", n, raddr)
+		//log.Tracef("Recv %v bytes from %v: %v", n, raddr, buf)
+		//log.Tracef("Recv %v bytes from %v", n, raddr)
 		p := udpPacket{
 			payload: buf, remoteAddress: *raddr,
 		}
@@ -110,7 +110,7 @@ func (d *dataPlaneInterface) receiveFn() {
 		case d.outputChannel <- p:
 		default:
 			incRxDrop(1)
-			log.Println("Dropped packet because channel is full")
+			log.Warnln("Dropped packet because channel is full")
 		}
 		d.channelLock.RUnlock()
 	}

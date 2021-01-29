@@ -90,10 +90,10 @@ readLoop:
 	for {
 		select {
 		case <-stream.Context().Done():
-			log.Print("Client cancelled subscription")
+			log.Debug("Client cancelled subscription")
 			break readLoop
 		case n := <-ch:
-			log.Printf("Sending notification %v", n)
+			log.Debugf("Sending notification %v", n)
 			if err := stream.Send(&n); err != nil {
 				return err
 			}

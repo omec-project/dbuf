@@ -187,9 +187,9 @@ func (b *QueueManager) allocateQueue(queueId uint32) (q *queue, err error) {
 	q = NewQueue(*maxPacketQueueSlots, time.AfterFunc(
 		*dropTimeout, func() {
 			if err := b.ReleasePackets(queueId, nil, true, false); err != nil {
-				log.Printf("Error droppping packets from queue %v: %v", queueId, err)
+				log.Errorf("Error droppping packets from queue %v: %v", queueId, err)
 			} else {
-				log.Printf("Dropped queue %v due to timeout.", queueId)
+				log.Debugf("Dropped queue %v due to timeout.", queueId)
 			}
 		}), *dropTimeout)
 	b.queueLock.Lock()
@@ -225,7 +225,7 @@ func (b *QueueManager) RegisterSubscriber(ch chan Notification) (err error) {
 	b.subscriberLock.Lock()
 	defer b.subscriberLock.Unlock()
 	b.subscribers = append(b.subscribers, ch)
-	log.Printf("Registered subscriber %v", ch)
+	log.Debugf("Registered subscriber %v", ch)
 	return
 }
 
@@ -236,7 +236,7 @@ func (b *QueueManager) UnregisterSubscriber(ch chan Notification) (err error) {
 		subs := &b.subscribers[i]
 		if *subs == ch {
 			b.subscribers = append(b.subscribers[:i], b.subscribers[i+1:]...)
-			log.Printf("Unregistered subscriber %v", ch)
+			log.Debugf("Unregistered subscriber %v", ch)
 			return
 		}
 	}
@@ -327,14 +327,14 @@ func (b *QueueManager) rxFn() {
 				buf := &bufferPacket{packet, queueId}
 				b.enqueueBuffer(buf)
 			} else {
-				log.Printf("Could not parse packet as IPv4: %v", packet)
+				log.Warnf("Could not parse packet as IPv4: %v", packet)
 			}
 		} else {
-			log.Printf("Could not parse packet as GTP: %v", packet)
+			log.Warnf("Could not parse packet as GTP: %v", packet)
 			// TODO(max): add counter here and above
 		}
 	}
-	log.Println("receive loop stopped")
+	log.Debugln("receive loop stopped")
 }
 
 func (b *QueueManager) notifyDrop(queueId uint32) {
@@ -346,9 +346,9 @@ func (b *QueueManager) notifyDrop(queueId uint32) {
 		}
 		select {
 		case ch <- n:
-			log.Print("notifyDrop", n)
+			log.Debug("notifyDrop", n)
 		default:
-			log.Print("notifyDrop failed, channel full")
+			log.Warn("notifyDrop failed, channel full")
 		}
 	}
 }
@@ -362,9 +362,9 @@ func (b *QueueManager) notifyFirst(queueId uint32) {
 		}
 		select {
 		case ch <- n:
-			log.Print("notifyFirst", n)
+			log.Debug("notifyFirst", n)
 		default:
-			log.Print("notifyFirst failed, channel full")
+			log.Warn("notifyFirst failed, channel full")
 		}
 	}
 }
@@ -372,7 +372,7 @@ func (b *QueueManager) notifyFirst(queueId uint32) {
 func (b *QueueManager) enqueueBuffer(pkt *bufferPacket) {
 	q, err := b.getOrAllocateQueue(pkt.id)
 	if err != nil {
-		log.Printf("Dropped packet. No resources for queue %v.", pkt.id)
+		log.Warnf("Dropped packet. No resources for queue %v.", pkt.id)
 		b.notifyDrop(pkt.id)
 		return
 	}
@@ -392,6 +392,6 @@ func (b *QueueManager) enqueueBuffer(pkt *bufferPacket) {
 	} else {
 		b.notifyDrop(pkt.id)
 		incQueueFullDrop(1)
-		log.Printf("Dropped packet. Queue with id %v is full.", pkt.id)
+		log.Warnf("Dropped packet. Queue with id %v is full.", pkt.id)
 	}
 }
