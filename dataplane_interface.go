@@ -5,7 +5,7 @@ package dbuf
 
 import (
 	"errors"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net"
 	"os"
 	"strings"

@@ -6,9 +6,9 @@ package dbuf
 import (
 	"context"
 	. "github.com/omec-project/dbuf/api"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
 	"net"
 )
 

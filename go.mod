@@ -8,6 +8,7 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/google/gopacket v1.1.18
 	github.com/prometheus/client_golang v1.7.1
+	github.com/sirupsen/logrus v1.4.2
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/genproto v0.0.0-20200108215221-bd8f9a0ef82f // indirect

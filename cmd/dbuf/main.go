@@ -6,11 +6,11 @@ package main
 import (
 	"flag"
 	"github.com/omec-project/dbuf"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	log.SetFormatter(&log.JSONFormatter{})
 	flag.Parse()
 
 	dbuffer := dbuf.NewDbuf()
