@@ -26,3 +26,6 @@ jobs:
         run: |
           docker-compose logs --tail 10 dbuf-client
           docker-compose logs --tail 10 dbuf-client | grep "Demo was a success!"
+          # 4 flows generating notifications at 3s intervals for 10s = 16 notifications
+          docker-compose logs dbuf-client | grep "Notification first_buffer:"
+          docker-compose logs dbuf-client | grep "Notification first_buffer:" | wc -l | grep 16
