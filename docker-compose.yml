@@ -8,9 +8,10 @@ services:
     image: registry.aetherproject.org/tost/dbuf:latest
     ports:
       - "10000:10000"
+    command: "dbuf -notify_timeout 3s"
 
   dbuf-client:
     build: .
-    command: "dbuf-client -url dbuf:10000 -local_dataplane_url : -remote_dataplane_url dbuf:2152 -demo"
+    command: "dbuf-client -url dbuf:10000 -local_dataplane_url dbuf-client:2153 -remote_dataplane_url dbuf:2152 -demo 10s -notify_timeout 3s"
     depends_on:
       - dbuf

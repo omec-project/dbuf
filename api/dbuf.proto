@@ -63,7 +63,9 @@ message SubscribeRequest {}
 
 message Notification {
   message Ready {}
+  // FIXME: rename to BufferedPacket
   message FirstBuffer {
+    // FIXME: rename to queue_id
     uint32 new_buffer_id = 1;
   }
   message DroppedPacket {

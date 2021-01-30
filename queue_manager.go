@@ -30,7 +30,8 @@ var (
 		"queue_drop_timeout", time.Second*5,
 		"Packets of a queue are dropped when no new packets are received within the timeout",
 	)
-	rxWorkers = flag.Uint("rx_workers", 1, "Number of rx worker goroutines handling dataplane packets")
+	rxWorkers     = flag.Uint("rx_workers", 1, "Number of rx worker goroutines handling dataplane packets")
+	notifyTimeout = flag.Duration("notify_timeout", time.Second*3, "Minimum amount of time between consecutive notifications for the same queue")
 )
 
 type bufferPacket struct {
@@ -39,12 +40,14 @@ type bufferPacket struct {
 }
 
 type queue struct {
-	packets      []bufferPacket
-	maximumSlots uint64
-	state        GetQueueStateResponse_QueuesState
-	lock         sync.Mutex
-	dropTimer    *time.Timer
-	dropTimeout  time.Duration
+	packets               []bufferPacket
+	maximumSlots          uint64
+	state                 GetQueueStateResponse_QueuesState
+	lock                  sync.Mutex
+	dropTimer             *time.Timer
+	dropTimeout           time.Duration
+	lastFirstNotification int64
+	lastDropNotification  int64
 }
 
 func NewQueue(maxSlots uint64, timer *time.Timer, dropTimeout time.Duration) *queue {
@@ -126,13 +129,14 @@ type QueueManagerInterface interface {
 }
 
 type QueueManager struct {
-	maxQueues      uint64
-	queues         map[uint32]*queue
-	ch             chan udpPacket
-	di             DataPlaneInterfaceInterface
-	queueLock      sync.RWMutex
-	subscribers    []chan Notification
-	subscriberLock sync.RWMutex
+	maxQueues            uint64
+	queues               map[uint32]*queue
+	ch                   chan udpPacket
+	di                   DataPlaneInterfaceInterface
+	queueLock            sync.RWMutex
+	subscribers          []chan Notification
+	subscriberLock       sync.RWMutex
+	lastDropNotification int64
 }
 
 func NewQueueManager(di DataPlaneInterfaceInterface, numMaxQueues uint64) *QueueManager {
@@ -370,10 +374,14 @@ func (b *QueueManager) notifyFirst(queueId uint32) {
 }
 
 func (b *QueueManager) enqueueBuffer(pkt *bufferPacket) {
+	now := time.Now().Unix()
 	q, err := b.getOrAllocateQueue(pkt.id)
 	if err != nil {
 		log.Printf("Dropped packet. No resources for queue %v.", pkt.id)
-		b.notifyDrop(pkt.id)
+		if now-b.lastDropNotification >= int64(notifyTimeout.Seconds()) {
+			b.notifyDrop(pkt.id)
+			b.lastDropNotification = now
+		}
 		return
 	}
 	q.lock.Lock()
@@ -383,14 +391,18 @@ func (b *QueueManager) enqueueBuffer(pkt *bufferPacket) {
 			_ = b.di.Send(pkt.udpPacket)
 			return
 		}
-		if q.unsafeEmpty() {
+		if now-q.lastFirstNotification >= int64(notifyTimeout.Seconds()) {
 			b.notifyFirst(pkt.id)
+			q.lastFirstNotification = now
 		}
 		q.packets = append(q.packets, *pkt)
 		q.dropTimer.Stop()
 		q.dropTimer.Reset(q.dropTimeout)
 	} else {
-		b.notifyDrop(pkt.id)
+		if now-q.lastDropNotification >= int64(notifyTimeout.Seconds()) {
+			b.notifyDrop(pkt.id)
+			q.lastDropNotification = now
+		}
 		incQueueFullDrop(1)
 		log.Printf("Dropped packet. Queue with id %v is full.", pkt.id)
 	}

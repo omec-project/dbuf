@@ -16,6 +16,7 @@ import (
 	"io"
 	"math/rand"
 	"net"
+	"os"
 	"time"
 )
 
@@ -27,15 +28,18 @@ var (
 		"remote_dataplane_url", "localhost:2152", "Dataplane URL of DBUF server to connect to.",
 	)
 	localDataplaneUrl = flag.String(
-		"local_dataplane_url", "localhost:", "Local dataplane url to send packets from.",
+		"local_dataplane_url", "localhost:43890", "Local dataplane url to send packets from.",
 	)
 	getCurrentState         = flag.Bool("get_current_state", false, "Get the current DBUF state.")
 	releasePackets          = flag.Uint64("release_queue", 0, "Release packets from queue.")
 	getQueueState           = flag.Uint64("get_queue_state", 0, "Get the state of a DBUF queue.")
 	sendPacket              = flag.Uint64("send_packet", 0, "Send a packet to DBUF.")
 	subscribe               = flag.Bool("subscribe", false, "Subscribe to Notifications.")
-	demo                    = flag.Bool("demo", false, "Run a demo of most functions.")
+	demo                    = flag.Duration("demo", 0, "Run a demo of most functions for the given duration")
+	notifyTimeout           = flag.Duration("notify_timeout", time.Second*3, "Expected notification timeout (for testing)")
 	dataplanePayloadCounter = uint64(1)
+	lastFirstNotifications  []int64
+	lastDropNotifications   []int64
 )
 
 type dbufClient struct {
@@ -117,6 +121,9 @@ func (c *dbufClient) Demo() (err error) {
 		return (rand.Uint32() % (maxQueueId - minQueueId)) + minQueueId
 	}
 
+	lastFirstNotifications = make([]int64, s.MaximumQueues, s.MaximumQueues)
+	lastDropNotifications = make([]int64, s.MaximumQueues, s.MaximumQueues)
+
 	for i := minQueueId; i < maxQueueId; i++ {
 		if err = doSendPacket(c.dataplaneConn, i); err != nil {
 			glog.Fatal(err)
@@ -159,6 +166,7 @@ func (c *dbufClient) Demo() (err error) {
 		}
 	}()
 
+	end := time.Now().Add(*demo)
 	for true {
 		if err = c.doModifyQueue(
 			randomId(), dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE,
@@ -166,6 +174,10 @@ func (c *dbufClient) Demo() (err error) {
 			glog.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 200)
+		if time.Now().After(end) {
+			glog.Infof("Demo was a success!")
+			os.Exit(0)
+		}
 	}
 
 	return
@@ -197,6 +209,25 @@ func readNotifications(stream dbuf.DbufService_SubscribeClient) error {
 			return err
 		}
 		glog.Infof("Notification %v", notification)
+		if len(lastFirstNotifications) == 0 {
+			continue
+		}
+		// Demo mode. Check notification timeout.
+		now := time.Now().Unix()
+		last := int64(0)
+		switch notification.MessageType.(type) {
+		case *dbuf.Notification_FirstBuffer_:
+			last = lastFirstNotifications[notification.GetFirstBuffer().NewBufferId-1]
+			lastFirstNotifications[notification.GetFirstBuffer().NewBufferId-1] = now
+		case *dbuf.Notification_DroppedPacket_:
+			last = lastDropNotifications[notification.GetDroppedPacket().QueueId-1]
+			lastDropNotifications[notification.GetDroppedPacket().QueueId-1] = now
+		default:
+			continue
+		}
+		if now-last < int64(notifyTimeout.Seconds()) {
+			glog.Fatalf("Notification received before timeout!")
+		}
 	}
 }
 
@@ -302,7 +333,7 @@ func main() {
 		glog.Info("Released packets of queue ", *releasePackets)
 	} else if *sendPacket > 0 {
 		doSendPacket(client.dataplaneConn, uint32(*sendPacket))
-	} else if *demo {
+	} else if *demo > 0 {
 		client.Demo()
 	} else {
 		glog.Fatal("No command given.")

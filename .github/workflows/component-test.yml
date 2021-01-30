@@ -1,0 +1,28 @@
+# Copyright 2020-present Open Networking Foundation
+# SPDX-License-Identifier: LicenseRef-ONF-Member-1.0
+
+name: Component test
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the Docker images
+        run: docker-compose build
+      - name: Run demo test
+        run: |
+          # Run demo for 10s and check results
+          docker-compose up -d
+          sleep 12
+      - name: Check results
+        run: |
+          docker-compose logs --tail 10 dbuf-client
+          docker-compose logs --tail 10 dbuf-client | grep "Demo was a success!"
