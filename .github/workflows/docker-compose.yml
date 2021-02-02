@@ -1,7 +1,7 @@
 # Copyright 2020-present Open Networking Foundation
 # SPDX-License-Identifier: LicenseRef-ONF-Member-1.0
 
-name: Docker Build
+name: Docker Build and Push
 
 on:
   push:
@@ -23,3 +23,4 @@ jobs:
       run: echo ${{ secrets.AETHER_DOCKER_REGISTRY_PASSWORD }} | docker login registry.aetherproject.org --username ${{ secrets.AETHER_DOCKER_REGISTRY_LOGIN }} --password-stdin
     - name: Push image
       run: docker push registry.aetherproject.org/tost/dbuf:latest
+      if: github.ref == 'refs/heads/main'
