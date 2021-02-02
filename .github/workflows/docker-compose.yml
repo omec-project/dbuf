@@ -24,3 +24,5 @@ jobs:
     - name: Push image
       run: docker push registry.aetherproject.org/tost/dbuf:latest
       if: github.ref == 'refs/heads/main'
+    - name: test dependent step
+      run: echo "should not run"
