@@ -8,10 +8,10 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
-	"github.com/golang/glog"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	dbuf "github.com/omec-project/dbuf/api"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"io"
 	"math/rand"
@@ -35,8 +35,46 @@ var (
 	sendPacket              = flag.Uint64("send_packet", 0, "Send a packet to DBUF.")
 	subscribe               = flag.Bool("subscribe", false, "Subscribe to Notifications.")
 	demo                    = flag.Bool("demo", false, "Run a demo of most functions.")
+	logLevel                = flag.String("log_level", "debug", "Verbosity of the logs")
+	logFormat               = &FormatFlagValue{&log.TextFormatter{}}
 	dataplanePayloadCounter = uint64(1)
 )
+
+func init() {
+	flag.Var(logFormat, "log_format", "Format of the logs")
+}
+
+type FormatFlagValue struct {
+	formatter log.Formatter
+}
+
+func (v *FormatFlagValue) String() string {
+	if _, ok := v.formatter.(*log.TextFormatter); ok {
+		return "text"
+	}
+	if _, ok := v.formatter.(*log.JSONFormatter); ok {
+		return "json"
+	}
+
+	return "unknown"
+}
+
+func (v *FormatFlagValue) Set(s string) error {
+	switch s {
+	case "text":
+		v.formatter = &log.TextFormatter{}
+	case "json":
+		v.formatter = &log.JSONFormatter{}
+	default:
+		return fmt.Errorf("allowed values are: text, json")
+	}
+
+	return nil
+}
+
+func (v *FormatFlagValue) GetFormatter() log.Formatter {
+	return v.formatter
+}
 
 type dbufClient struct {
 	dbuf.DbufServiceClient
@@ -86,16 +124,16 @@ func (c *dbufClient) Shutdown() (err error) {
 func (c *dbufClient) SetupSubscription() (err error) {
 	stream, err := c.Subscribe(context.Background(), &dbuf.SubscribeRequest{})
 	if err != nil {
-		glog.Fatalln("Subscribe error: ", err)
+		log.Fatalln("Subscribe error: ", err)
 	}
 	n, err := stream.Recv()
 	if err != nil {
-		glog.Fatalln("Recv error: ", err)
+		log.Fatalln("Recv error: ", err)
 	}
 	if ready := n.GetReady(); ready == nil {
-		glog.Fatal("Server did not respond with ready")
+		log.Fatal("Server did not respond with ready")
 	}
-	glog.Info("Subscribed to notifications")
+	log.Info("Subscribed to notifications")
 	go readNotifications(stream)
 
 	return
@@ -103,14 +141,14 @@ func (c *dbufClient) SetupSubscription() (err error) {
 
 func (c *dbufClient) Demo() (err error) {
 	if err := c.SetupSubscription(); err != nil {
-		glog.Fatal(err)
+		log.Fatal(err)
 	}
 
 	s, err := c.GetDbufState(context.Background(), &dbuf.GetDbufStateRequest{})
 	if err != nil {
-		glog.Fatal(err)
+		log.Fatal(err)
 	}
-	glog.Info(s)
+	log.Info(s)
 	minQueueId := uint32(1)
 	maxQueueId := uint32(s.MaximumQueues + 1)
 	randomId := func() uint32 {
@@ -119,13 +157,13 @@ func (c *dbufClient) Demo() (err error) {
 
 	for i := minQueueId; i < maxQueueId; i++ {
 		if err = doSendPacket(c.dataplaneConn, i); err != nil {
-			glog.Fatal(err)
+			log.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 50)
 	}
 	for i := minQueueId; i < maxQueueId; i++ {
 		if err = c.doModifyQueue(i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE); err != nil {
-			glog.Infoln(err)
+			log.Infoln(err)
 		}
 	}
 
@@ -134,18 +172,18 @@ func (c *dbufClient) Demo() (err error) {
 		if err = c.doModifyQueue(
 			i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE_AND_PASSTHROUGH,
 		); err != nil {
-			glog.Fatal(err)
+			log.Fatal(err)
 		}
 	}
 	for i := minQueueId; i < maxQueueId; i++ {
 		if err = doSendPacket(c.dataplaneConn, i); err != nil {
-			glog.Fatal(err)
+			log.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 50)
 	}
 	for i := minQueueId; i < maxQueueId; i++ {
 		if err = c.doModifyQueue(i, dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE); err != nil {
-			glog.Fatal(err)
+			log.Fatal(err)
 		}
 	}
 	time.Sleep(time.Millisecond * 500)
@@ -153,7 +191,7 @@ func (c *dbufClient) Demo() (err error) {
 	go func() {
 		for true {
 			if err = doSendPacket(c.dataplaneConn, randomId()); err != nil {
-				glog.Fatal(err)
+				log.Fatal(err)
 			}
 			time.Sleep(time.Microsecond * 100)
 		}
@@ -163,7 +201,7 @@ func (c *dbufClient) Demo() (err error) {
 		if err = c.doModifyQueue(
 			randomId(), dbuf.ModifyQueueRequest_QUEUE_ACTION_RELEASE,
 		); err != nil {
-			glog.Fatal(err)
+			log.Fatal(err)
 		}
 		time.Sleep(time.Millisecond * 200)
 	}
@@ -183,7 +221,7 @@ func (c *dbufClient) doModifyQueue(
 	if err != nil {
 		return
 	}
-	glog.Infof("Modified queue %v to action %v", queueId, action)
+	log.Infof("Modified queue %v to action %v", queueId, action)
 	return
 }
 
@@ -196,7 +234,7 @@ func readNotifications(stream dbuf.DbufService_SubscribeClient) error {
 		if err != nil {
 			return err
 		}
-		glog.Infof("Notification %v", notification)
+		log.Infof("Notification %v", notification)
 	}
 }
 
@@ -208,7 +246,7 @@ func readDataplane(conn *net.UDPConn) error {
 			return err
 		}
 		buf = buf[:n]
-		glog.Infof("Recv %v bytes from %v: %v", n, raddr, buf)
+		log.Infof("Recv %v bytes from %v: %v", n, raddr, buf)
 	}
 }
 
@@ -246,71 +284,73 @@ func doSendPacket(conn *net.UDPConn, queueId uint32) (err error) {
 		gopacket.Payload(payload),
 	)
 	if err != nil {
-		glog.Infof("SerializeLayers error %v", err)
+		log.Infof("SerializeLayers error %v", err)
 		return
 	}
 	packetData := buf.Bytes()
 
 	n, err := conn.Write(packetData)
 	if err != nil {
-		glog.Fatalf("Write error: %v", err)
+		log.Fatalf("Write error: %v", err)
 	}
-	glog.Infof("Sent %v bytes: %v", n, packetData)
+	log.Infof("Sent %v bytes: %v", n, packetData)
 
 	return
 }
 
 func main() {
-	//log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
 	flag.Parse()
-	flag.Lookup("logtostderr").Value.Set("true")
-	flag.Lookup("stderrthreshold").Value.Set("INFO")
+	log.SetReportCaller(true)
+	log.SetFormatter(logFormat.GetFormatter())
+	level, err := log.ParseLevel(*logLevel)
+	if err != nil {
+		log.Fatalf("Could not parse log level: %v", err)
+	}
+	log.SetLevel(level)
 
 	client := newDbufClient()
 	if err := client.Start(); err != nil {
-		glog.Fatalf("Could not start client: %v", err)
+		log.Fatalf("Could not start client: %v", err)
 	}
 	defer client.Shutdown()
 
 	if *subscribe {
 		if err := client.SetupSubscription(); err != nil {
-			glog.Fatal(err)
+			log.Fatal(err)
 		}
 	}
 
 	if *getCurrentState {
 		state, err := client.GetDbufState(context.Background(), &dbuf.GetDbufStateRequest{})
 		if err != nil {
-			glog.Fatalln("GetCurrentState error: ", err)
+			log.Fatalln("GetCurrentState error: ", err)
 		}
-		glog.Info(state)
+		log.Info(state)
 	} else if *getQueueState > 0 {
 		state, err := client.GetQueueState(
 			context.Background(), &dbuf.GetQueueStateRequest{QueueId: *getQueueState},
 		)
 		if err != nil {
-			glog.Fatalln("GetQueueState error: ", err)
+			log.Fatalln("GetQueueState error: ", err)
 		}
-		glog.Info(state)
+		log.Info(state)
 	} else if *releasePackets > 0 {
 		_, err := client.ModifyQueue(
 			context.Background(), &dbuf.ModifyQueueRequest{QueueId: *releasePackets},
 		)
 		if err != nil {
-			glog.Fatalln("ReleasePackets error: ", err)
+			log.Fatalln("ReleasePackets error: ", err)
 		}
-		glog.Info("Released packets of queue ", *releasePackets)
+		log.Info("Released packets of queue ", *releasePackets)
 	} else if *sendPacket > 0 {
 		doSendPacket(client.dataplaneConn, uint32(*sendPacket))
 	} else if *demo {
 		client.Demo()
 	} else {
-		glog.Fatal("No command given.")
+		log.Fatal("No command given.")
 	}
 
 	if *subscribe {
 		time.Sleep(time.Second)
 	}
-
-	glog.Flush()
 }

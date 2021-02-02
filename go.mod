@@ -3,7 +3,6 @@ module github.com/omec-project/dbuf
 go 1.15
 
 require (
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.2
 	github.com/google/gopacket v1.1.18
