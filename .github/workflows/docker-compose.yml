@@ -20,8 +20,8 @@ jobs:
       
     - name: Login to Aether registry
       run: echo ${{ secrets.AETHER_DOCKER_REGISTRY_PASSWORD }} | docker login registry.aetherproject.org --username ${{ secrets.AETHER_DOCKER_REGISTRY_LOGIN }} --password-stdin
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/master'
 
     - name: Push image to Aether registry
       run: docker push registry.aetherproject.org/tost/dbuf:latest
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/master'
