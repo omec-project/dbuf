@@ -6,12 +6,25 @@ package main
 import (
 	"flag"
 	"github.com/omec-project/dbuf"
-	"log"
+	"github.com/omec-project/dbuf/utils"
+	log "github.com/sirupsen/logrus"
 )
 
+var (
+	logLevel  = utils.NewLogLevelFlagValue(log.InfoLevel)
+	logFormat = utils.NewLogFormatFlagValue(&log.TextFormatter{})
+)
+
+func init() {
+	flag.Var(logFormat, "log_format", "Format of the logs")
+	flag.Var(logLevel, "log_level", "Verbosity of the logs")
+}
+
 func main() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
 	flag.Parse()
+	log.SetReportCaller(true)
+	log.SetFormatter(logFormat.GetFormatter())
+	log.SetLevel(logLevel.GetLevel())
 
 	dbuffer := dbuf.NewDbuf()
 	// Blocking

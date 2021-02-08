@@ -9,7 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -84,9 +84,9 @@ const queueDroppedStatKey string = "queue_dropped_packets"
 func startMetricsServer() {
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
-		log.Println(http.ListenAndServe(*metricsUrl, nil))
+		log.Infoln(http.ListenAndServe(*metricsUrl, nil))
 	}()
-	log.Printf("Listening for metrics requests on http://%v/metrics", *metricsUrl)
+	log.Infof("Listening for metrics requests on http://%v/metrics", *metricsUrl)
 }
 
 func incRxOk(delta int64) {
