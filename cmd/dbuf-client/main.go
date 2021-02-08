@@ -11,6 +11,7 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	dbuf "github.com/omec-project/dbuf/api"
+	"github.com/omec-project/dbuf/utils"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"io"
@@ -35,13 +36,14 @@ var (
 	sendPacket              = flag.Uint64("send_packet", 0, "Send a packet to DBUF.")
 	subscribe               = flag.Bool("subscribe", false, "Subscribe to Notifications.")
 	demo                    = flag.Bool("demo", false, "Run a demo of most functions.")
-	logLevel                = flag.String("log_level", "debug", "Verbosity of the logs")
-	logFormat               = &FormatFlagValue{&log.TextFormatter{}}
+	logLevel                = utils.NewLogLevelFlagValue(log.InfoLevel)
+	logFormat               = utils.NewLogFormatFlagValue(&log.TextFormatter{})
 	dataplanePayloadCounter = uint64(1)
 )
 
 func init() {
 	flag.Var(logFormat, "log_format", "Format of the logs")
+	flag.Var(logLevel, "log_level", "Verbosity of the logs")
 }
 
 type FormatFlagValue struct {
@@ -302,11 +304,7 @@ func main() {
 	flag.Parse()
 	log.SetReportCaller(true)
 	log.SetFormatter(logFormat.GetFormatter())
-	level, err := log.ParseLevel(*logLevel)
-	if err != nil {
-		log.Fatalf("Could not parse log level: %v", err)
-	}
-	log.SetLevel(level)
+	log.SetLevel(logLevel.GetLevel())
 
 	client := newDbufClient()
 	if err := client.Start(); err != nil {
