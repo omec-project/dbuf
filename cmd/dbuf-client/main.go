@@ -46,38 +46,6 @@ func init() {
 	flag.Var(logLevel, "log_level", "Verbosity of the logs")
 }
 
-type FormatFlagValue struct {
-	formatter log.Formatter
-}
-
-func (v *FormatFlagValue) String() string {
-	if _, ok := v.formatter.(*log.TextFormatter); ok {
-		return "text"
-	}
-	if _, ok := v.formatter.(*log.JSONFormatter); ok {
-		return "json"
-	}
-
-	return "unknown"
-}
-
-func (v *FormatFlagValue) Set(s string) error {
-	switch s {
-	case "text":
-		v.formatter = &log.TextFormatter{}
-	case "json":
-		v.formatter = &log.JSONFormatter{}
-	default:
-		return fmt.Errorf("allowed values are: text, json")
-	}
-
-	return nil
-}
-
-func (v *FormatFlagValue) GetFormatter() log.Formatter {
-	return v.formatter
-}
-
 type dbufClient struct {
 	dbuf.DbufServiceClient
 	conn          *grpc.ClientConn
