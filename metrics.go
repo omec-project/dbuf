@@ -86,7 +86,7 @@ func startMetricsServer() {
 		http.Handle("/metrics", promhttp.Handler())
 		log.Println(http.ListenAndServe(*metricsUrl, nil))
 	}()
-	log.Printf("Listening for metrics requests on %v", *metricsUrl)
+	log.Printf("Listening for metrics requests on http://%v/metrics", *metricsUrl)
 }
 
 func incRxOk(delta int64) {
