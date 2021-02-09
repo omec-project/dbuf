@@ -185,7 +185,8 @@ func (c *dbufClient) doModifyQueue(
 	_, err = c.ModifyQueue(
 		context.Background(),
 		&dbuf.ModifyQueueRequest{
-			Action: action, QueueId: uint64(queueId), DestinationAddress: *localDataplaneUrl,
+			Action: action, QueueId: uint64(queueId),
+			DestinationAddress: c.dataplaneConn.LocalAddr().String(),
 		},
 	)
 	if err != nil {
