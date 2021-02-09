@@ -12,9 +12,16 @@ A downlink buffering agent for the UP4 architecture.
 go run cmd/dbuf/main.go
 ```
 
-#### Options:
-
 Run with `-help` for a full list of available flags and descriptions.
+
+### DBUF client simulator
+
+DBUF comes with a simulated client that connects to the API and sends data plane
+packets:
+
+```bash
+go run cmd/dbuf-client/main.go --demo
+```
 
 ### Controlplane API
 
@@ -22,27 +29,31 @@ The northbound API is defined in [dbuf.proto](api/dbuf.proto).
 
 ## Design
 
+DBUF is:
+
 - Golang microservice with gRPC northbound interface
 
 - Per UE, in memory packet buffer
-  - No persistence, inspection or reordering
+  - No persistence, inspection, filtering or reordering
 
-- L4 service on Linux networking stack (UDP sockets)
-  - GTP/UDP/IP encoding for dataplane packets from and to Tofino
+- Layer 4 service on Linux networking stack (UDP sockets)
+  - GTP/UDP/IP encoding for data plane packets from and to Tofino switches
 
-- Monitoring of system and queue state (e.g. load) via prometheus
+- Exposing telemetry about system and queue state (e.g. load) via prometheus
 
 ### Terminology
-
-#### Queue
-
-A sequential container storing packets for a single UE. Identified by its ID or the UE's IP address.
 
 #### Packet
 
 A sequence of bytes received on the dataplane interfaces. 
 
+#### Queue
+
+A sequential container storing packets for a single UE. Identified by its ID or the UE's IP address.
+
 #### QueueManager
+
+Manages queues and notifies clients about queue events.   
 
 #### Buffer
 
