@@ -26,6 +26,14 @@ func TestQueue(t *testing.T) {
 		t.Errorf("new queue is not empty")
 	}
 
+	t.Run("ClearSuccess", func(t *testing.T) {
+		q.packets = append(q.packets, bufferPacket{})
+		q.clear()
+		if len(q.packets) != 0 {
+			t.Error("queue contains packets after clear")
+		}
+	})
+
 	t.Run("SimpleEnqueueSuccess", func(t *testing.T) {
 		q.clear()
 		if err := q.enqueuePacket(pkt); err != nil {

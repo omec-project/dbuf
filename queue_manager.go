@@ -107,7 +107,11 @@ func (q *queue) enqueuePacket(pkt *bufferPacket) error {
 func (q *queue) clear() {
 	q.lock.Lock()
 	defer q.lock.Unlock()
-	q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
+	q.unsafeClearAndSetState(GetQueueStateResponse_QUEUE_STATE_BUFFERING)
+}
+
+func (q *queue) unsafeClearAndSetState(newState GetQueueStateResponse_QueuesState) {
+	q.state = newState
 	q.packets = q.packets[:0]
 	q.dropTimer.Stop()
 	q.dropTimer.Reset(q.dropTimeout)
@@ -302,16 +306,13 @@ func (b *QueueManager) ReleasePackets(
 	} else {
 		incQueueReleased(int64(len(q.packets)))
 	}
-	// q.clear() ?
-	q.packets = q.packets[:0]
-	//q.packets = make([]bufferPacket, 0, *maxPacketQueueSlots)
+	var newState GetQueueStateResponse_QueuesState
 	if passthrough {
-		q.state = GetQueueStateResponse_QUEUE_STATE_PASSTHROUGH
+		newState = GetQueueStateResponse_QUEUE_STATE_PASSTHROUGH
 	} else {
-		q.state = GetQueueStateResponse_QUEUE_STATE_BUFFERING
+		newState = GetQueueStateResponse_QUEUE_STATE_BUFFERING
 	}
-	q.dropTimer.Stop()
-	q.dropTimer.Reset(q.dropTimeout)
+	q.unsafeClearAndSetState(newState)
 
 	return nil
 }

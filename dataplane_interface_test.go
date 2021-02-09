@@ -89,7 +89,7 @@ func TestDataPlaneInterface(t *testing.T) {
 	})
 
 	t.Run("Receive", func(t *testing.T) {
-		ch := make(chan udpPacket)
+		ch := make(chan udpPacket, *rxQueueDepth)
 		di.SetOutputChannel(ch)
 		pkt := udpPacket{
 			payload:       []byte{1, 2, 3},
