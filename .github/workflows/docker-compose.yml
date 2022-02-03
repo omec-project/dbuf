@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      
+
     - name: Build the Docker images
       run: docker-compose build
-      
-    - name: Login to Aether registry
-      run: echo ${{ secrets.AETHER_DOCKER_REGISTRY_PASSWORD }} | docker login registry.aetherproject.org --username ${{ secrets.AETHER_DOCKER_REGISTRY_LOGIN }} --password-stdin
+
+    - name: Login to DockerHub
+      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login --username ${{ secrets.DOCKERHUB_LOGIN }} --password-stdin
       if: github.ref == 'refs/heads/master'
 
     - name: Push image to Aether registry
-      run: docker push registry.aetherproject.org/tost/dbuf:latest
+      run: docker push opennetworking/dbuf:latest
       if: github.ref == 'refs/heads/master'
